@@ -2,15 +2,16 @@ import { VStack, Text, Image, Link } from '@chakra-ui/react';
 import InputBox from '../common/Inputbox';
 import PasswordBox from '../common/PasswordBox';
 import MainButton from '../common/MainButton';
-import { IoPersonOutline } from "react-icons/io5";
+import {FiUser} from "react-icons/fi"
+
 
 const LoginCard = () => {
   return (
     <VStack 
-      gap="4" // فاصله بقیه المان‌ها همون‌طور که بود
+      gap="4" 
       w="full" 
       align="center" 
-      px="1"
+      py= "4"
     >
       <Image 
         src="/src/assets/images/logo.svg" 
@@ -32,7 +33,7 @@ const LoginCard = () => {
         .برای ادامه، وارد حساب کاربری خود شوید
       </Text>
       
-      <InputBox label="نام کاربری" placeholder="نام کاربری خود را وارد کنید" icon={IoPersonOutline} />
+      <InputBox label="نام کاربری" placeholder="نام کاربری خود را وارد کنید" icon={FiUser} />
       <PasswordBox label="رمز عبور" placeholder="رمز عبور خود را وارد کنید" />
       
       <MainButton text="ورود" {...({ mt: "4" } as any)} />
@@ -51,6 +52,7 @@ const LoginCard = () => {
           fontWeight="bold" 
           _hover={{ textDecoration: "underline" }}
           textAlign="center"
+          href='/signup'
         >
           ثبت نام کنید
         </Link>
