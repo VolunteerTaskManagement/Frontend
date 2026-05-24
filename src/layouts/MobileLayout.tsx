@@ -1,48 +1,36 @@
-import type { ReactNode } from 'react';
-import { Box } from '@chakra-ui/react';
+import type { ReactNode } from "react"
+import { Box } from "@chakra-ui/react"
 
-interface MobileLayoutProps {
-  children: ReactNode;
+type Props = {
+  children: ReactNode
 }
 
-const MobileLayout = ({ children }: MobileLayoutProps) => {
+const MobileLayout = ({ children }: Props) => {
   return (
     <Box
-      w="100vw"
-      h="100vh"
+      minH="100dvh" 
+      w="100%"
+      bg="#F3F4F6"
       display="flex"
-      justifyContent="center"
-      alignItems="center"
-      bg={{ base: 'white', md: 'gray.100' }}
+      justifyContent="center" 
+      alignItems={{ base: "flex-start", md: "center" }} 
     >
       <Box
         w="100%"
-        maxW="393px"         
-        h="100%"
+        maxW="430px"
+        minH={{ base: "100dvh", md: "auto" }} 
         bg="white"
-        borderRadius={{ base: '0', md: '24px' }}
-        boxShadow={{ base: 'none', md: '0 0 24px rgba(0,0,0,0.15)' }}
+        boxShadow={{ base: "none", md: "0 0 24px rgba(0,0,0,0.1)" }}
+        borderRadius={{ base: "0", md: "24px" }}
         overflowY="auto"
-        position="relative"
-        css={{
-          '&::-webkit-scrollbar': {
-            width: '0px',
-            height: '0px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: 'transparent',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            background: 'transparent',
-          },
-          scrollbarWidth: 'none', 
-          msOverflowStyle: 'none', 
-        }}
+                pt="calc(env(safe-area-inset-top, 0px) + 24px)"
+                pb = "24px"
+        px="16px"
       >
         {children}
       </Box>
     </Box>
-  );
-};
+  )
+}
 
-export default MobileLayout;
+export default MobileLayout
