@@ -1,36 +1,39 @@
-import type { ReactNode } from "react"
-import { Box } from "@chakra-ui/react"
+import type { ReactNode } from "react";
+import { Box } from "@chakra-ui/react";
 
 type Props = {
-  children: ReactNode
-}
+  children: ReactNode;
+};
 
 const MobileLayout = ({ children }: Props) => {
   return (
     <Box
-      minH="100dvh" 
+      minH="100dvh"
       w="100%"
       bg="#F3F4F6"
       display="flex"
-      justifyContent="center" 
-      alignItems={{ base: "flex-start", md: "center" }} 
+      justifyContent="center"
+      px={{ base: "0", md: "20px" }}
+      py={{ base: "0", md: "24px" }}
     >
       <Box
         w="100%"
         maxW="430px"
-        minH={{ base: "100dvh", md: "auto" }} 
         bg="white"
-        boxShadow={{ base: "none", md: "0 0 24px rgba(0,0,0,0.1)" }}
         borderRadius={{ base: "0", md: "24px" }}
-        overflowY="auto"
-                pt="calc(env(safe-area-inset-top, 0px) + 24px)"
-                pb = "24px"
-        px="16px"
+        boxShadow={{
+          base: "none",
+          md: "0 0 24px rgba(0,0,0,0.08)",
+        }}
+        overflow="hidden"
+        px="24px"
+        pt="24px"
+        pb="48px"
       >
         {children}
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default MobileLayout
+export default MobileLayout;
