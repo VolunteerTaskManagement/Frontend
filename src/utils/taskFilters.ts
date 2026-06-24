@@ -1,4 +1,3 @@
-import { NEIGHBORHOOD_OPTIONS, SKILL_OPTIONS } from '../constants/tasks';
 import type { FilterOption, Task, TaskFilters } from '../types/task';
 
 export function getOptionLabel(options: FilterOption[], value: string): string {
@@ -9,21 +8,8 @@ export function filterTasks(tasks: Task[], filters: TaskFilters): Task[] {
   const query = filters.search.trim().toLowerCase();
 
   return tasks.filter((task) => {
-    const skillLabels = task.skills.map((skill) =>
-      getOptionLabel(SKILL_OPTIONS, skill).toLowerCase(),
-    );
-    const neighborhoodLabel = getOptionLabel(
-      NEIGHBORHOOD_OPTIONS,
-      task.neighborhood,
-    ).toLowerCase();
-
-    const matchesSearch =
-      query.length === 0 ||
-      task.title.toLowerCase().includes(query) ||
-      task.description.toLowerCase().includes(query) ||
-      task.creatorName.toLowerCase().includes(query) ||
-      skillLabels.some((label) => label.includes(query)) ||
-      neighborhoodLabel.includes(query);
+    // فقط روی title جستجو کن
+    const matchesSearch = query.length === 0 || task.title.toLowerCase().includes(query);
 
     const matchesSkills =
       filters.skills.length === 0 ||
