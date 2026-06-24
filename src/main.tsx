@@ -5,16 +5,21 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './index.css'
 import Login from './pages/Login/Login'
 import SignUp from './pages/SignUp/Signup'
+import Tasks from './pages/Tasks/Tasks'
+import TaskDetail from './pages/Tasks/TaskDetail'
+import { appSystem } from './theme/system'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ChakraProvider value={defaultSystem}>
+    <ChakraProvider value={appSystem}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<App />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/tasks/:taskId" element={<TaskDetail />} />
+          </Routes>
       </BrowserRouter>
     </ChakraProvider>
   </StrictMode>

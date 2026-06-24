@@ -25,7 +25,7 @@ const MobileLayout = ({ children }: Props) => {
           base: "none",
           md: "0 0 24px rgba(0,0,0,0.08)",
         }}
-        overflow="hidden"
+        overflowY="auto"
         px="24px"
         pt="24px"
         pb="48px"
