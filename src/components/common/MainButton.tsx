@@ -9,7 +9,7 @@ const MainButton = ({ text, ...props }: MainButtonProps) => {
   return (
     <Button
       {...props}
-      w="30%"
+      w={props.w ?? '30%'}
       h="40px"
       bg="#008A8F"
       color="white"
