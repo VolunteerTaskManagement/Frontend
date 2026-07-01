@@ -5,9 +5,11 @@ import { IoEyeOutline, IoEyeOffOutline } from 'react-icons/io5';
 interface PasswordBoxProps {
   label: string;
   placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
 }
 
-const PasswordBox = ({ label, placeholder }: PasswordBoxProps) => {
+const PasswordBox = ({ label, placeholder, value, onChange }: PasswordBoxProps) => {
   const [show, setShow] = useState(false);
 
   return (
@@ -19,7 +21,9 @@ const PasswordBox = ({ label, placeholder }: PasswordBoxProps) => {
       <Box position="relative" w="full" px="4">
         <Input
           type={show ? 'text' : 'password'}
+          value={value}
           placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
           variant="outline"
           dir="rtl"
           textAlign="right"
