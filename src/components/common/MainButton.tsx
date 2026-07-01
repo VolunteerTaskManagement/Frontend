@@ -1,16 +1,16 @@
-// src/components/common/MainButton.tsx
-import { Button } from '@chakra-ui/react';
+import { Button } from "@chakra-ui/react";
+import type { ButtonProps } from "@chakra-ui/react";
 
-interface MainButtonProps {
+interface MainButtonProps extends ButtonProps {
   text: string;
 }
 
 const MainButton = ({ text, ...props }: MainButtonProps) => {
   return (
     <Button
-      w="30%"
+      w={props.w ?? '30%'}
       h="40px"
-      bg="#008A8F" 
+      bg="#008A8F"
       color="white"
       borderRadius="10px"
       fontWeight="bold"

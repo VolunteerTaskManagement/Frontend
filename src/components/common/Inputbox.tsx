@@ -5,9 +5,11 @@ interface InputBoxProps {
   label: string;
   placeholder: string;
   icon?: IconType;
+  value: string;
+  onChange: (value: string) => void;
 }
 
-const InputBox = ({ label, placeholder, icon: IconComponent }: InputBoxProps) => {
+const InputBox = ({ label, placeholder, icon: IconComponent , value , onChange }: InputBoxProps) => {
   return (
     <Field.Root w="full">
       <Box w="full" textAlign="right" pr="6">
@@ -17,6 +19,8 @@ const InputBox = ({ label, placeholder, icon: IconComponent }: InputBoxProps) =>
       <Box position="relative" w="full" px="4">
         <Input
           placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           variant="outline"
           dir="rtl"
           textAlign="right"
