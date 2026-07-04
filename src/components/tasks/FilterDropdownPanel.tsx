@@ -16,6 +16,8 @@ interface FilterDropdownPanelProps {
   footerLabel: (count: number) => string;
   showLocationIcon?: boolean;
   locationIcon?: IconType;
+  showSearch?: boolean;
+  onSearch?: (query: string) => void;
 }
 
 const FilterDropdownPanel = ({
@@ -28,12 +30,21 @@ const FilterDropdownPanel = ({
   footerLabel,
   showLocationIcon = false,
   locationIcon: LocationIcon,
+  showSearch = true,
+  onSearch,
 }: FilterDropdownPanelProps) => {
   const [panelSearch, setPanelSearch] = useState('');
 
+  const handleSearchChange = (value: string) => {
+    setPanelSearch(value);
+    if (onSearch) {
+      onSearch(value);
+    }
+  };
+
   const filteredOptions = useMemo(
-    () => filterOptionsByQuery(options, panelSearch),
-    [options, panelSearch],
+    () => (onSearch ? options : filterOptionsByQuery(options, panelSearch)),
+    [options, panelSearch, onSearch],
   );
 
   const accent = accentColor === 'orange' ? brandColors.accent : brandColors.primary;
@@ -49,39 +60,41 @@ const FilterDropdownPanel = ({
       p="4"
       boxShadow="0 8px 32px rgba(0, 0, 0, 0.14)"
     >
-      <Text fontSize="sm" fontWeight="bold" color={accent} mb="3" textAlign="left">
+      <Text fontSize="sm" fontWeight="bold" color={accent} mb="3" textAlign="right">
         {panelTitle}
       </Text>
 
-      <Box position="relative" mb="3">
-        <Input
-          value={panelSearch}
-          onChange={(event) => setPanelSearch(event.target.value)}
-          placeholder={searchPlaceholder}
-          dir="rtl"
-          textAlign="right"
-          h="40px"
-          pl="40px"
-          pr="3"
-          bg="#F9FAFB"
-          border="1px solid"
-          borderColor={brandColors.border}
-          borderRadius="full"
-          fontSize="sm"
-          _placeholder={{ color: brandColors.textMuted }}
-          _focus={{ borderColor: accent, boxShadow: 'none' }}
-        />
-        <Box
-          position="absolute"
-          top="50%"
-          left="12px"
-          transform="translateY(-50%)"
-          color={brandColors.textMuted}
-          pointerEvents="none"
-        >
-          <FiSearch size={16} />
+      {showSearch && (
+        <Box position="relative" mb="3">
+          <Input
+            value={panelSearch}
+            onChange={(event) => handleSearchChange(event.target.value)}
+            placeholder={searchPlaceholder}
+            dir="rtl"
+            textAlign="right"
+            h="40px"
+            pl="40px"
+            pr="3"
+            bg="#F9FAFB"
+            border="1px solid"
+            borderColor={brandColors.border}
+            borderRadius="full"
+            fontSize="sm"
+            _placeholder={{ color: brandColors.textMuted }}
+            _focus={{ borderColor: accent, boxShadow: 'none' }}
+          />
+          <Box
+            position="absolute"
+            top="50%"
+            left="12px"
+            transform="translateY(-50%)"
+            color={brandColors.textMuted}
+            pointerEvents="none"
+          >
+            <FiSearch size={16} />
+          </Box>
         </Box>
-      </Box>
+      )}
 
       <VStack
         align="stretch"
@@ -107,7 +120,17 @@ const FilterDropdownPanel = ({
               onClick={() => onSelect(option.value)}
               _hover={{ bg: isSelected ? accentBg : 'gray.50' }}
               justify="space-between"
+              dir="rtl"
             >
+              <HStack gap="2" flex="1" justify="flex-start">
+                <Text fontSize="sm" fontWeight={isSelected ? 'semibold' : 'medium'} textAlign="right">
+                  {option.label}
+                </Text>
+                {showLocationIcon && isSelected && LocationIcon && (
+                  <LocationIcon size={14} color={accent} />
+                )}
+              </HStack>
+
               <Box
                 w="20px"
                 h="20px"
@@ -117,22 +140,13 @@ const FilterDropdownPanel = ({
                 bg={isSelected ? accent : 'transparent'}
                 flexShrink={0}
               />
-
-              <HStack gap="2" flex="1" justify="flex-end">
-                <Text fontSize="sm" fontWeight={isSelected ? 'semibold' : 'medium'} textAlign="right">
-                  {option.label}
-                </Text>
-                {showLocationIcon && isSelected && LocationIcon && (
-                  <LocationIcon size={14} color={accent} />
-                )}
-              </HStack>
             </HStack>
           );
         })}
       </VStack>
 
       {selectedValues.length > 0 && (
-        <Text mt="3" fontSize="xs" color={brandColors.textSecondary} textAlign="left">
+        <Text mt="3" fontSize="xs" color={brandColors.textSecondary} textAlign="right">
           {footerLabel(selectedValues.length)}
         </Text>
       )}

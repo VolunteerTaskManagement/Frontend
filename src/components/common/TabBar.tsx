@@ -21,13 +21,13 @@ const tabs: TabItem[] = [
     id: "tasks",
     label: "وظایف من",
     icon: LuVote,
-    path: "/tasks",
+    path: "/mytasks",
   },
   {
     id: "ads",
     label: "آگهی ها",
     icon: LuNotepadText,
-    path: "/ads",
+    path: "/tasks",
   },
 ];
 

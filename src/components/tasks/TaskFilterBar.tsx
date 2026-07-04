@@ -1,100 +1,170 @@
 import { Box, HStack } from '@chakra-ui/react';
-import { FiMapPin } from 'react-icons/fi';
+import { useEffect, useMemo, useRef } from 'react';
+import { FiMapPin, FiSliders } from 'react-icons/fi';
 import { LuWrench } from 'react-icons/lu';
-import { NEIGHBORHOOD_OPTIONS, SKILL_OPTIONS } from '../../constants/tasks';
-import type { FilterType, TaskFilters } from '../../types/task';
+import { TASK_STATUS } from '../../types/task';
+import type { FilterOption, FilterType, TaskFilters } from '../../types/task';
 import FilterDropdownPanel from './FilterDropdownPanel';
 import FilterTrigger from './FilterTrigger';
 
 interface TaskFilterBarProps {
   filters: TaskFilters;
+  skillOptions: FilterOption[];
+  neighborhoodOptions: FilterOption[];
   openFilter: FilterType | null;
   onOpenFilterChange: (filter: FilterType | null) => void;
-  onToggleSkill: (skill: string) => void;
-  onToggleNeighborhood: (neighborhood: string) => void;
+  onToggleSkill: (skillId: number) => void;
+  onToggleNeighborhood: (neighborhoodId: number) => void;
+  onToggleStatus: (statusId: number) => void;
+  onNeighborhoodSearch: (query: string) => void;
 }
 
-const FILTER_CONFIG = {
-  skills: {
-    label: 'مهارت‌ها',
-    icon: LuWrench,
-    accentColor: 'teal' as const,
-    panelTitle: 'مهارت‌های من',
-    searchPlaceholder: 'جستجوی مهارت...',
-    options: SKILL_OPTIONS,
-    footerLabel: (count: number) => `${count} مهارت انتخاب شده`,
-    showLocationIcon: false,
-  },
-  neighborhoods: {
-    label: 'مناطق',
-    icon: FiMapPin,
-    accentColor: 'orange' as const,
-    panelTitle: 'مناطق من',
-    searchPlaceholder: 'جستجوی شهر یا محله...',
-    options: NEIGHBORHOOD_OPTIONS,
-    footerLabel: (count: number) => `${count} منطقه انتخاب شده`,
-    showLocationIcon: true,
-  },
-};
+const STATUS_OPTIONS: FilterOption[] = [
+  { value: String(TASK_STATUS.Open), label: 'باز' },
+  { value: String(TASK_STATUS.Assigned), label: 'تخصیص‌یافته' },
+  { value: String(TASK_STATUS.Completed), label: 'تکمیل‌شده' },
+];
 
 const TaskFilterBar = ({
   filters,
+  skillOptions,
+  neighborhoodOptions,
   openFilter,
   onOpenFilterChange,
   onToggleSkill,
   onToggleNeighborhood,
+  onToggleStatus,
+  onNeighborhoodSearch,
 }: TaskFilterBarProps) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!openFilter) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        onOpenFilterChange(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openFilter, onOpenFilterChange]);
+
+  const filterConfig = useMemo(
+    () => ({
+      skills: {
+        label: 'مهارت‌ها',
+        icon: LuWrench,
+        accentColor: 'teal' as const,
+        panelTitle: 'مهارت‌های من',
+        searchPlaceholder: 'جستجوی مهارت...',
+        options: skillOptions,
+        footerLabel: (count: number) => `${count} مهارت انتخاب شده`,
+        showLocationIcon: false,
+        showSearch: true,
+        selectedValues: filters.skillIds.map(String),
+        onSelect: (value: string) => onToggleSkill(Number(value)),
+        onSearch: undefined,
+      },
+      neighborhoods: {
+        label: 'مناطق',
+        icon: FiMapPin,
+        accentColor: 'orange' as const,
+        panelTitle: 'مناطق من',
+        searchPlaceholder: 'جستجوی شهر یا محله...',
+        options: neighborhoodOptions,
+        footerLabel: (count: number) => `${count} منطقه انتخاب شده`,
+        showLocationIcon: true,
+        showSearch: true,
+        selectedValues: filters.neighborhoodIds.map(String),
+        onSelect: (value: string) => onToggleNeighborhood(Number(value)),
+        onSearch: onNeighborhoodSearch,
+      },
+      statuses: {
+        label: 'وضعیت',
+        icon: FiSliders,
+        accentColor: 'teal' as const,
+        panelTitle: 'وضعیت وظیفه',
+        searchPlaceholder: 'جستجوی وضعیت...',
+        options: STATUS_OPTIONS,
+        footerLabel: (count: number) => `${count} وضعیت انتخاب شده`,
+        showLocationIcon: false,
+        showSearch: false,
+        selectedValues: filters.statusIds.map(String),
+        onSelect: (value: string) => onToggleStatus(Number(value)),
+        onSearch: undefined,
+      },
+    }),
+    [
+      skillOptions,
+      neighborhoodOptions,
+      filters.skillIds,
+      filters.neighborhoodIds,
+      filters.statusIds,
+      onToggleSkill,
+      onToggleNeighborhood,
+      onToggleStatus,
+      onNeighborhoodSearch,
+    ],
+  );
+
   const handleToggle = (filter: FilterType) => {
     onOpenFilterChange(openFilter === filter ? null : filter);
   };
 
-  const activeConfig = openFilter ? FILTER_CONFIG[openFilter] : null;
-  const activeValues = openFilter === 'skills' ? filters.skills : filters.neighborhoods;
-  const activeOnSelect = openFilter === 'skills' ? onToggleSkill : onToggleNeighborhood;
+  const activeConfig = openFilter ? filterConfig[openFilter] : null;
 
   return (
-    <Box position="relative" w="full">
-      <HStack gap="2" w="full" align="flex-start">
+    <Box ref={containerRef} position="relative" w="full">
+      <HStack gap="1" w="full" align="flex-start">
         <Box flex="1" minW="0">
           <FilterTrigger
-            label={FILTER_CONFIG.skills.label}
-            icon={FILTER_CONFIG.skills.icon}
-            selectedCount={filters.skills.length}
+            label={filterConfig.skills.label}
+            icon={filterConfig.skills.icon}
+            selectedCount={filters.skillIds.length}
             isOpen={openFilter === 'skills'}
             onClick={() => handleToggle('skills')}
-            accentColor={FILTER_CONFIG.skills.accentColor}
+            accentColor={filterConfig.skills.accentColor}
           />
         </Box>
         <Box flex="1" minW="0">
           <FilterTrigger
-            label={FILTER_CONFIG.neighborhoods.label}
-            icon={FILTER_CONFIG.neighborhoods.icon}
-            selectedCount={filters.neighborhoods.length}
+            label={filterConfig.neighborhoods.label}
+            icon={filterConfig.neighborhoods.icon}
+            selectedCount={filters.neighborhoodIds.length}
             isOpen={openFilter === 'neighborhoods'}
             onClick={() => handleToggle('neighborhoods')}
-            accentColor={FILTER_CONFIG.neighborhoods.accentColor}
+            accentColor={filterConfig.neighborhoods.accentColor}
+          />
+        </Box>
+        <Box flex="1" minW="0">
+          <FilterTrigger
+            label={filterConfig.statuses.label}
+            icon={filterConfig.statuses.icon}
+            selectedCount={filters.statusIds.length}
+            isOpen={openFilter === 'statuses'}
+            onClick={() => handleToggle('statuses')}
+            accentColor={filterConfig.statuses.accentColor}
           />
         </Box>
       </HStack>
 
       {openFilter && activeConfig && (
-        <Box
-          position="absolute"
-          top="calc(100% + 8px)"
-          left="0"
-          right="0"
-          zIndex="popover"
-        >
+        <Box position="absolute" top="calc(100% + 8px)" left="0" right="0" zIndex="popover">
           <FilterDropdownPanel
             panelTitle={activeConfig.panelTitle}
             searchPlaceholder={activeConfig.searchPlaceholder}
             options={activeConfig.options}
-            selectedValues={activeValues}
-            onSelect={activeOnSelect}
+            selectedValues={activeConfig.selectedValues}
+            onSelect={activeConfig.onSelect}
             accentColor={activeConfig.accentColor}
             footerLabel={activeConfig.footerLabel}
             showLocationIcon={activeConfig.showLocationIcon}
             locationIcon={activeConfig.icon}
+            showSearch={activeConfig.showSearch}
+            onSearch={activeConfig.onSearch}
           />
         </Box>
       )}
