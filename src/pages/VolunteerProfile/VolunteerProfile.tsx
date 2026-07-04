@@ -1,12 +1,12 @@
-import MobileLayout from "../../layouts/MobileLayout";
 import VolunteerProfileCard from "../../components/VolunteerProfile/VolunteerProfileCard";
+import TabBarLayout from "../../layouts/TabBarLayout";
 
 const VolunteerProfile = () => {
   return (
     <>
-    <MobileLayout>        
+      <TabBarLayout>
       <VolunteerProfileCard />
-    </MobileLayout>
+      </TabBarLayout>
     </>
   );
 };
