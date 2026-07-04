@@ -17,9 +17,11 @@ import {
 
 import { FiUpload } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Dropdown from "../common/Dropdown";
 import InputBox from "../common/Inputbox";
+import { searchNeighborhoods } from "../../services/neighborhood";
+import { getSkills } from "../../services/skillsDropdown";
 
 
 interface CreateTaskProbs {
@@ -27,62 +29,98 @@ interface CreateTaskProbs {
   onClose: () => void;
 }
 
-const neighborhoods = [
-  {
-    label: "سعادت آباد",
-    value: "saadat-abad",
-  },
-  {
-    label: "ونک",
-    value: "vanak",
-  },
-  {
-    label: "پونک",
-    value: "ponak",
-  },
-];
-
-const skills = [
-  {
-    label: "React",
-    value: "react",
-  },
-  {
-    label: "TypeScript",
-    value: "typescript",
-  },
-  {
-    label: "UI Design",
-    value: "ui-design",
-  },
-];
-
 export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
 {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [address, setAddress] = useState("");
+  const [skillIds, setSkillIds] = useState<number[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [peopleCount, setPeopleCount] = useState("1");
+  const [neighborhoodOptions, setNeighborhoodOptions] = useState< {label: string; value: string}[] >([]);
+  const [skillOptions, setSkillOptions] = useState< {label: string; value: string}[] >([]);
 
-  const handleSkillSelect = (value: string) => {
-    if (value && !selectedSkills.includes(value))
-    {
-      setSelectedSkills((prev) => [
-        ...prev,
-        value,
-      ]);
+  const handleNeighborhoodSearch = useCallback(async (text: string) => {
+    try {
+      const res = await searchNeighborhoods(text);
+
+      if (res.isSuccess) {
+        setNeighborhoodOptions(
+          res.value.map((item) => ({
+            label: item.title,
+            value: item.id.toString(),
+          }))
+        );
+      }
+    } catch (err) {
+      console.log(err);
     }
+  }, []);
+
+  const handleSkillSearch = useCallback(async (text: string) => {
+    try {
+      const res = await getSkills();
+
+      if (res.isSuccess) {
+        const filtered = res.value.filter((s) =>
+          s.value.includes(text)
+        );
+
+        setSkillOptions(
+          filtered.map((item) => ({
+            label: item.value,
+            value: item.key.toString(),
+          }))
+        );
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }, []);
+
+  const addSkill = (value: string) => {
+    if (!value) return;
+
+    // is selected already
+    if (skillIds.includes(Number(value))) return;
+
+    const skill = skillOptions.find((x) => x.value === value);
+    if (!skill) return;
+
+    setSkillIds((prev) => [
+      ...prev,
+      Number(value),
+    ]);
+
+    setSelectedSkills((prev) => [
+      ...prev,
+      skill.label,
+    ]);
   };
 
-  const removeSkill = (skillValue: string) => {
+  const removeSkill = (label: string) => {
+    const skill = skillOptions.find(
+      (x) => x.label === label
+    );
+
+    if (!skill) return;
+
     setSelectedSkills((prev) =>
-      prev.filter(
-        (item) => item !== skillValue
-      )
+      prev.filter((x) => x !== label)
+    );
+
+    setSkillIds((prev) =>
+      prev.filter((x) => x !== Number(skill.value))
     );
   };
+
+  useEffect(() => {
+    if (open) {
+      handleNeighborhoodSearch("");
+      handleSkillSearch("");
+    }
+  }, [open]);
 
   return (
     <Dialog.Root
@@ -214,9 +252,10 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                 <Dropdown
                   label="محله"
                   placeholder="محله خود را انتخاب کنید"
-                  options={neighborhoods}
+                  options={neighborhoodOptions}
                   value={neighborhood}
                   onChange={setNeighborhood}
+                  onSearch={handleNeighborhoodSearch}
                 />
 
                 {/* Address */}
@@ -231,8 +270,9 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                 <Dropdown
                   label="مهارت ها"
                   placeholder="می‌توانید چند مهارت انتخاب کنید"
-                  options={skills}
-                  onChange={handleSkillSelect}
+                  options={skillOptions}
+                  onChange={addSkill}
+                  onSearch={handleSkillSearch}
                 />
                 {selectedSkills.length > 0 && (
                   <Wrap px="4" gap="2">
@@ -255,15 +295,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                           }}
                           onClick={() => removeSkill(skill)}
                         >
-                          <Box
-                            as="span"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <IoClose size={16} />
-                          </Box>
-
+                          <IoClose size={16} />
                           <Text>{skill}</Text>
                         </Box>
                       </WrapItem>
