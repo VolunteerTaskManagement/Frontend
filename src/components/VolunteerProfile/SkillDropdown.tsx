@@ -12,32 +12,25 @@ interface DropdownOption {
   value: string;
 }
 
-interface DropdownProps {
+interface SkillDropdownProps {
   label?: string;
   placeholder: string;
   options: DropdownOption[];
   value?: string;
-
-  // <-- NEW
-  displayValue?: string;
-
   onChange?: (value: string) => void;
   onSearch?: (text: string) => void;
-
   showLabel?: boolean;
   px?: string | number;
-  maxMenuHeight?: string |number;
+  maxMenuHeight?: string | number;
   allowClear?: boolean;
   clearText?: string;
-  centerText?: boolean;
 }
 
-const Dropdown = ({
+const SkillDropdown = ({
   label,
   placeholder,
   options,
   value,
-  displayValue,
   onChange,
   onSearch,
   showLabel = true,
@@ -45,23 +38,19 @@ const Dropdown = ({
   maxMenuHeight = "180px",
   allowClear = true,
   clearText = "-",
-  centerText = false,
-}: DropdownProps) => {
+}: SkillDropdownProps) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+    if (!value) return;
+
     const selected = options.find((o) => o.value === value);
 
     if (selected) {
       setSearch(selected.label);
-      return;
     }
-
-    if (displayValue) {
-      setSearch(displayValue);
-    }
-  }, [value, displayValue, options]);
+  }, [value, options]);
 
   const menuOffset = px === "0" || px === 0 ? "0" : "16px";
   const arrowOffset = px === "0" || px === 0 ? "12px" : "28px";
@@ -88,21 +77,20 @@ const Dropdown = ({
           }}
           onFocus={() => {
             setOpen(true);
-            onSearch?.("");
+            onSearch?.(search);
           }}
           onBlur={() => {
             window.setTimeout(() => setOpen(false), 150);
           }}
           variant="outline"
           dir="rtl"
-          textAlign={centerText ? "center" : "right"}
+          textAlign="right"
           borderColor="gray.200"
           borderRadius="8px"
           pl="40px"
           pr="8px"
           _placeholder={{
             color: "gray.400",
-            textAlign: centerText ? "center" : "right",
           }}
           _focus={{
             borderColor: "teal.500",
@@ -170,7 +158,7 @@ const Dropdown = ({
                   _hover={{ bg: "gray.50" }}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    setSearch(opt.label);
+                    setSearch("");
                     onChange?.(opt.value);
                     setOpen(false);
                   }}
@@ -195,4 +183,4 @@ const Dropdown = ({
   );
 };
 
-export default Dropdown;
+export default SkillDropdown;
