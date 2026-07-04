@@ -5,7 +5,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { MdKeyboardArrowDown } from "react-icons/md";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface DropdownOption {
   label: string;
@@ -18,6 +18,7 @@ interface SkillDropdownProps {
   options: DropdownOption[];
   value?: string;
   onChange?: (value: string) => void;
+  onSearch?: (text: string) => void;
   showLabel?: boolean;
   px?: string | number;
   maxMenuHeight?: string | number;
@@ -29,7 +30,9 @@ const SkillDropdown = ({
   label,
   placeholder,
   options,
+  value,
   onChange,
+  onSearch,
   showLabel = true,
   px = "4",
   maxMenuHeight = "180px",
@@ -39,15 +42,15 @@ const SkillDropdown = ({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const filteredOptions = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+  useEffect(() => {
+    if (!value) return;
 
-    if (!normalizedSearch) return options;
+    const selected = options.find((o) => o.value === value);
 
-    return options.filter((opt) =>
-      opt.label.toLowerCase().includes(normalizedSearch)
-    );
-  }, [options, search]);
+    if (selected) {
+      setSearch(selected.label);
+    }
+  }, [value, options]);
 
   const menuOffset = px === "0" || px === 0 ? "0" : "16px";
   const arrowOffset = px === "0" || px === 0 ? "12px" : "28px";
@@ -67,21 +70,18 @@ const SkillDropdown = ({
           value={search}
           placeholder={placeholder}
           onChange={(e) => {
-            setSearch(e.target.value);
+            const text = e.target.value;
+            setSearch(text);
             setOpen(true);
+            onSearch?.(text);
           }}
           onFocus={() => {
-            setSearch("");
             setOpen(true);
-          }}
-          onClick={() => {
-            setSearch("");
-            setOpen(true);
+            onSearch?.(search);
           }}
           onBlur={() => {
             window.setTimeout(() => setOpen(false), 150);
           }}
-          cursor="text"
           variant="outline"
           dir="rtl"
           textAlign="right"
@@ -106,7 +106,6 @@ const SkillDropdown = ({
           pointerEvents="none"
           display="flex"
           alignItems="center"
-          color="black"
         >
           <MdKeyboardArrowDown size={22} />
         </Box>
@@ -123,7 +122,7 @@ const SkillDropdown = ({
             borderRadius="8px"
             overflowY="auto"
             maxH={maxMenuHeight}
-            zIndex="10"
+            zIndex={100}
             boxShadow="sm"
           >
             {allowClear && (
@@ -132,17 +131,15 @@ const SkillDropdown = ({
                 py="10px"
                 cursor="pointer"
                 textAlign="right"
-                fontSize="md"
                 color="gray.500"
                 borderBottom="1px solid"
                 borderColor="gray.100"
-                _hover={{
-                  bg: "gray.50",
-                }}
+                _hover={{ bg: "gray.50" }}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   setSearch("");
                   onChange?.("");
+                  onSearch?.("");
                   setOpen(false);
                 }}
               >
@@ -150,18 +147,15 @@ const SkillDropdown = ({
               </Box>
             )}
 
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((opt) => (
+            {options.length > 0 ? (
+              options.map((opt) => (
                 <Box
                   key={opt.value}
                   px="12px"
                   py="10px"
                   cursor="pointer"
                   textAlign="right"
-                  fontSize="md"
-                  _hover={{
-                    bg: "gray.50",
-                  }}
+                  _hover={{ bg: "gray.50" }}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     setSearch("");
@@ -178,7 +172,6 @@ const SkillDropdown = ({
                 py="10px"
                 textAlign="right"
                 color="gray.500"
-                fontSize="sm"
               >
                 گزینه‌ای پیدا نشد
               </Box>
