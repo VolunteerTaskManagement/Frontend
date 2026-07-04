@@ -62,6 +62,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
+  const [address, setAddress] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [peopleCount, setPeopleCount] = useState("1");
 
@@ -216,6 +217,14 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   options={neighborhoods}
                   value={neighborhood}
                   onChange={setNeighborhood}
+                />
+
+                {/* Address */}
+                <InputBox
+                  label="آدرس"
+                  placeholder="آدرس کامل را وارد کنید"
+                  value={address}
+                  onChange={setAddress}
                 />
 
                 {/* Skills */}
