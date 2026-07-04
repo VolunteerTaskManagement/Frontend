@@ -12,7 +12,10 @@ const Calendar = ({ label, value, onChange }: Props) => {
   const years = Array.from({ length: 60 }, (_, i) => 1405 - i);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  const [year = "", month = "", day = ""] = value.split("/");
+  const [yStr = "", mStr = "", dStr = ""] = value.split("/");
+  const year = yStr ? String(Number(yStr)) : "";
+  const month = mStr ? String(Number(mStr)) : "";
+  const day = dStr ? String(Number(dStr)) : "";
 
   const updateDate = (
     newYear: string,
