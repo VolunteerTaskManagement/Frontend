@@ -5,7 +5,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { MdKeyboardArrowDown } from "react-icons/md";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface DropdownOption {
   label: string;
@@ -17,40 +17,51 @@ interface DropdownProps {
   placeholder: string;
   options: DropdownOption[];
   value?: string;
+
+  // <-- NEW
+  displayValue?: string;
+
   onChange?: (value: string) => void;
+  onSearch?: (text: string) => void;
+
   showLabel?: boolean;
   px?: string | number;
-  maxMenuHeight?: string | number;
+  maxMenuHeight?: string |number;
   allowClear?: boolean;
   clearText?: string;
-  centerText?: boolean
+  centerText?: boolean;
 }
 
 const Dropdown = ({
   label,
   placeholder,
   options,
+  value,
+  displayValue,
   onChange,
+  onSearch,
   showLabel = true,
   px = "4",
   maxMenuHeight = "180px",
   allowClear = true,
   clearText = "-",
   centerText = false,
-
 }: DropdownProps) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const filteredOptions = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+  useEffect(() => {
+    const selected = options.find((o) => o.value === value);
 
-    if (!normalizedSearch) return options;
+    if (selected) {
+      setSearch(selected.label);
+      return;
+    }
 
-    return options.filter((opt) =>
-      opt.label.toLowerCase().includes(normalizedSearch)
-    );
-  }, [options, search]);
+    if (displayValue) {
+      setSearch(displayValue);
+    }
+  }, [value, displayValue, options]);
 
   const menuOffset = px === "0" || px === 0 ? "0" : "16px";
   const arrowOffset = px === "0" || px === 0 ? "12px" : "28px";
@@ -70,21 +81,18 @@ const Dropdown = ({
           value={search}
           placeholder={placeholder}
           onChange={(e) => {
-            setSearch(e.target.value);
+            const text = e.target.value;
+            setSearch(text);
             setOpen(true);
+            onSearch?.(text);
           }}
           onFocus={() => {
-            setSearch("");
             setOpen(true);
-          }}
-          onClick={() => {
-            setSearch("");
-            setOpen(true);
+            onSearch?.("");
           }}
           onBlur={() => {
             window.setTimeout(() => setOpen(false), 150);
           }}
-          cursor="text"
           variant="outline"
           dir="rtl"
           textAlign={centerText ? "center" : "right"}
@@ -110,7 +118,6 @@ const Dropdown = ({
           pointerEvents="none"
           display="flex"
           alignItems="center"
-          color="black"
         >
           <MdKeyboardArrowDown size={22} />
         </Box>
@@ -127,7 +134,7 @@ const Dropdown = ({
             borderRadius="8px"
             overflowY="auto"
             maxH={maxMenuHeight}
-            zIndex="10"
+            zIndex={100}
             boxShadow="sm"
           >
             {allowClear && (
@@ -136,17 +143,15 @@ const Dropdown = ({
                 py="10px"
                 cursor="pointer"
                 textAlign="right"
-                fontSize="md"
                 color="gray.500"
                 borderBottom="1px solid"
                 borderColor="gray.100"
-                _hover={{
-                  bg: "gray.50",
-                }}
+                _hover={{ bg: "gray.50" }}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   setSearch("");
                   onChange?.("");
+                  onSearch?.("");
                   setOpen(false);
                 }}
               >
@@ -154,18 +159,15 @@ const Dropdown = ({
               </Box>
             )}
 
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((opt) => (
+            {options.length > 0 ? (
+              options.map((opt) => (
                 <Box
                   key={opt.value}
                   px="12px"
                   py="10px"
                   cursor="pointer"
                   textAlign="right"
-                  fontSize="md"
-                  _hover={{
-                    bg: "gray.50",
-                  }}
+                  _hover={{ bg: "gray.50" }}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     setSearch(opt.label);
@@ -182,7 +184,6 @@ const Dropdown = ({
                 py="10px"
                 textAlign="right"
                 color="gray.500"
-                fontSize="sm"
               >
                 گزینه‌ای پیدا نشد
               </Box>
