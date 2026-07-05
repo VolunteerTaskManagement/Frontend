@@ -13,12 +13,14 @@ import { FiUser } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../services/auth.service";
 import { useAuth } from "../../contexts/AuthContext";
+import { useTaskFiltersStore } from "../../stores/taskFiltersStore";
 
 const LoginCard = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { loginUser } = useAuth();
   const navigate = useNavigate();
+  const initFromProfile = useTaskFiltersStore((state) => state.initFromProfile);
   
   const handleLogin = async () => {
     console.log("username:", username);
@@ -32,12 +34,17 @@ const LoginCard = () => {
           userName: res.value.userName,
           role: res.value.role,
           isProfileComplete: res.value.isProfileComplete,
+          neighborhoodId: res.value.neighborhoodId ?? null,
+          skills: res.value.skills ?? [],
         },
         {
           accessToken: res.value.accessToken,
           refreshToken: res.value.refreshToken,
         }
       );
+      
+      initFromProfile(res.value.skills ?? [], res.value.neighborhoodId ?? null);
+      
       navigate("/tasks");
     } catch (err) {
       console.log("login error", err);
