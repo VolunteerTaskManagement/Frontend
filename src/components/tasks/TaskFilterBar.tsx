@@ -73,7 +73,7 @@ const TaskFilterBar = ({
         icon: FiMapPin,
         accentColor: 'orange' as const,
         panelTitle: 'مناطق من',
-        searchPlaceholder: 'جستجوی شهر یا محله...',
+        searchPlaceholder: 'جستجوی محله...',
         options: neighborhoodOptions,
         footerLabel: (count: number) => `${count} منطقه انتخاب شده`,
         showLocationIcon: true,

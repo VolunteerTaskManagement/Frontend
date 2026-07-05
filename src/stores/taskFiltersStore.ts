@@ -17,6 +17,7 @@ interface TaskFiltersState {
   toggleStatus: (statusId: number) => void;
   setOpenFilter: (filter: FilterType | null) => void;
   resetFilters: () => void;
+  initFromProfile: (skillIds: number[], neighborhoodId: number | null) => void;
 }
 
 export const useTaskFiltersStore = create<TaskFiltersState>((set) => ({
@@ -64,6 +65,16 @@ export const useTaskFiltersStore = create<TaskFiltersState>((set) => ({
     set({
       filters: DEFAULT_TASK_FILTERS,
       openFilter: null,
+    }),
+
+  // تنظیم فیلترهای اولیه بر اساس پروفایل داوطلب بعد از لاگین
+  initFromProfile: (skillIds, neighborhoodId) =>
+    set({
+      filters: {
+        ...DEFAULT_TASK_FILTERS,
+        skillIds,
+        neighborhoodIds: neighborhoodId ? [neighborhoodId] : [],
+      },
     }),
 }));
 

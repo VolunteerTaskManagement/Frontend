@@ -50,3 +50,29 @@ export const assignTask = async (
 
   return res.data;
 };
+
+export const fetchMyTasks = async (
+  params: TaskQueryParams
+): Promise<ApiResponse<PaginatedResult<TaskListItem>>> => {
+  const queryString = buildTaskQueryString(params);
+  const res = await api.get(`/Tasks/my?${queryString}`);
+ 
+  return res.data;
+};
+ 
+export const unassignTask = async (
+  id: number
+): Promise<ApiResponse<null>> => {
+  const res = await api.post("/Tasks/unassign", { id });
+ 
+  return res.data;
+};
+ 
+export const completeTask = async (
+  id: number
+): Promise<ApiResponse<null>> => {
+  const res = await api.post("/Tasks/complete-by-volunteer", { id });
+ 
+  return res.data;
+};
+ 

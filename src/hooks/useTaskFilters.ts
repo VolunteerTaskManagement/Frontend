@@ -9,6 +9,7 @@ export function useTaskFilters() {
   const toggleStatus = useTaskFiltersStore((state) => state.toggleStatus);
   const setOpenFilter = useTaskFiltersStore((state) => state.setOpenFilter);
   const resetFilters = useTaskFiltersStore((state) => state.resetFilters);
+  const initFromProfile = useTaskFiltersStore((state) => state.initFromProfile);
   const hasActiveFilters = useTaskFiltersStore(selectHasActiveFilters);
 
   return {
@@ -20,6 +21,7 @@ export function useTaskFilters() {
     toggleStatus,
     setOpenFilter,
     resetFilters,
+    initFromProfile,
     hasActiveFilters,
   };
 }
