@@ -358,13 +358,14 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   </Text>
 
                   <NumberInput.Root
+                    mx="auto"
+                    width="140px"
+                    min={1}
                     value={peopleCount}
                     onValueChange={(e) => setPeopleCount(e.value)}
-                    width="140px"
-                    mx="auto"
                   >
                     <NumberInput.Control />
-                    <NumberInput.Input />
+                    <NumberInput.Input borderRadius="8px" />
                   </NumberInput.Root>
                 </Box>
               </VStack>
