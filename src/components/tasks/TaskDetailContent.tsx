@@ -1,15 +1,15 @@
 import { Box, HStack, Image, Spinner, Text, VStack } from '@chakra-ui/react';
 import type { ReactNode } from 'react';
-import { FiArrowRight, FiClock, FiMapPin, FiPhone, FiUser } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { FiArrowRight, FiClock, FiMapPin, FiUser } from 'react-icons/fi';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainButton from '../common/MainButton';
-import { NEIGHBORHOOD_OPTIONS, SKILL_OPTIONS } from '../../constants/tasks';
+import { useAssignTask } from '../../hooks/useassigntask';
 import { useTask } from '../../hooks/useTask';
+import { useTaskImage } from '../../hooks/useTaskImage';
 import { brandColors } from '../../theme/tokens';
-import { getOptionLabel } from '../../utils/taskFilters';
 
 interface TaskDetailContentProps {
-  taskId: string;
+  taskId: number;
 }
 
 const DetailRow = ({
@@ -38,7 +38,15 @@ const DetailRow = ({
 
 const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { task, isLoading, error } = useTask(taskId);
+  const { imageSrc } = useTaskImage(task?.picUrl);
+  const { assign, isLoading: isAssigning, error: assignError, isSuccess: assigned } = useAssignTask();
+
+  // اگه از my-tasks اومدیم، بازگشت به همونجا
+  const fromMyTasks = location.state?.from === 'mytasks';
+  const backPath = fromMyTasks ? '/mytasks' : '/tasks';
+  const backLabel = fromMyTasks ? 'بازگشت به وظایف من' : 'بازگشت به وظایف';
 
   if (isLoading) {
     return (
@@ -57,12 +65,10 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
         <Text color="red.500" fontSize="sm">
           {error ?? 'وظیفه یافت نشد.'}
         </Text>
-        <MainButton text="بازگشت" onClick={() => navigate('/tasks')} />
+        <MainButton text="بازگشت" onClick={() => navigate(backPath)} />
       </VStack>
     );
   }
-
-  const neighborhoodLabel = getOptionLabel(NEIGHBORHOOD_OPTIONS, task.neighborhood);
 
   return (
     <VStack align="stretch" gap="4" dir="rtl" w="full" pb="4">
@@ -79,29 +85,33 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
         bg="transparent"
         border="none"
         p="0"
-        onClick={() => navigate('/tasks')}
+        onClick={() => navigate(backPath)}
         _hover={{ opacity: 0.8 }}
       >
         <FiArrowRight size={18} />
-        <Text>بازگشت به وظایف</Text>
+        <Text>{backLabel}</Text>
       </Box>
 
-      <Box position="relative" h="200px" borderRadius="20px" overflow="hidden">
-        <Image src={task.imageUrl} alt={task.title} w="full" h="full" objectFit="cover" />
-        <Box
-          position="absolute"
-          bottom="3"
-          left="3"
-          px="3"
-          py="1"
-          borderRadius="full"
-          bg="blackAlpha.600"
-          color="white"
-          fontSize="xs"
-          fontWeight="medium"
-        >
-          {task.vacancies} جای خالی
-        </Box>
+      <Box position="relative" h="200px" borderRadius="20px" overflow="hidden" bg="gray.100">
+        {imageSrc && (
+          <Image src={imageSrc} alt={task.title} w="full" h="full" objectFit="cover" />
+        )}
+        {!fromMyTasks && (
+          <Box
+            position="absolute"
+            bottom="3"
+            left="3"
+            px="3"
+            py="1"
+            borderRadius="full"
+            bg="blackAlpha.600"
+            color="white"
+            fontSize="xs"
+            fontWeight="medium"
+          >
+            {task.count - task.volunteerCount} جای خالی
+          </Box>
+        )}
       </Box>
 
       <Text fontSize="xl" fontWeight="bold" color={brandColors.primary} lineHeight="1.5">
@@ -119,11 +129,11 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
           color={brandColors.textSecondary}
         >
           <FiMapPin size={12} />
-          <Text>{neighborhoodLabel}</Text>
+          <Text>{task.neighborhoodTitle}</Text>
         </HStack>
-        {task.skills.map((skill) => (
+        {task.skillTitles.map((skillTitle, index) => (
           <Box
-            key={skill}
+            key={`${task.skills[index]}-${skillTitle}`}
             px="3"
             py="1"
             borderRadius="full"
@@ -131,7 +141,7 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
             fontSize="xs"
             color={brandColors.textSecondary}
           >
-            {getOptionLabel(SKILL_OPTIONS, skill)}
+            {skillTitle}
           </Box>
         ))}
       </HStack>
@@ -139,10 +149,10 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
       <Box h="1px" bg="gray.100" />
 
       <VStack align="stretch" gap="4">
-        <DetailRow icon={<FiClock size={18} />} label="زمان برگزاری" value={task.schedule} />
-        <DetailRow icon={<FiUser size={18} />} label="ایجادکننده" value={task.creatorName} />
+        <DetailRow icon={<FiClock size={18} />} label="زمان برگزاری" value={task.startDateFa} />
+        <DetailRow icon={<FiUser size={18} />} label="مسئول" value={task.coordinatorName} />
+        <DetailRow icon={<FiMapPin size={18} />} label="شماره تماس" value={task.mobile} />
         <DetailRow icon={<FiMapPin size={18} />} label="آدرس" value={task.address} />
-        <DetailRow icon={<FiPhone size={18} />} label="شماره تماس" value={task.creatorPhone} />
       </VStack>
 
       <Box>
@@ -154,9 +164,40 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
         </Text>
       </Box>
 
-      <Box w="full" display="flex" justifyContent="center" pt="2">
-        <MainButton text="ثبت‌نام" w="full" maxW="280px" />
-      </Box>
+      {/* دکمه ثبت‌نام فقط وقتی داوطلب هنوز ثبت‌نام نکرده نشون داده می‌شه */}
+      {!task.isAssigned && (
+        <>
+          {assignError && (
+            <Text fontSize="sm" color="red.500" textAlign="center">
+              {assignError}
+            </Text>
+          )}
+
+          {assigned ? (
+            <Box
+              w="full"
+              p="3"
+              borderRadius="12px"
+              bg={brandColors.primaryLight}
+              textAlign="center"
+            >
+              <Text fontSize="sm" fontWeight="bold" color={brandColors.primary}>
+                ثبت‌نام شما با موفقیت انجام شد
+              </Text>
+            </Box>
+          ) : (
+            <Box w="full" display="flex" justifyContent="center" pt="2">
+              <MainButton
+                text={isAssigning ? 'در حال ثبت‌نام...' : 'ثبت‌نام'}
+                w="full"
+                maxW="280px"
+                onClick={() => assign(taskId)}
+                disabled={isAssigning}
+              />
+            </Box>
+          )}
+        </>
+      )}
     </VStack>
   );
 };

@@ -1,18 +1,17 @@
 import { Box, HStack, Image, Text, VStack } from '@chakra-ui/react';
 import { FiClock, FiMapPin } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
-import { NEIGHBORHOOD_OPTIONS, SKILL_OPTIONS } from '../../constants/tasks';
+import { useTaskImage } from '../../hooks/useTaskImage';
 import { brandColors } from '../../theme/tokens';
-import type { Task } from '../../types/task';
-import { getOptionLabel } from '../../utils/taskFilters';
+import type { TaskListItem } from '../../types/task';
 
 interface TaskCardProps {
-  task: Task;
+  task: TaskListItem;
 }
 
 const TaskCard = ({ task }: TaskCardProps) => {
   const navigate = useNavigate();
-  const neighborhoodLabel = getOptionLabel(NEIGHBORHOOD_OPTIONS, task.neighborhood);
+  const { imageSrc } = useTaskImage(task.picUrl);
 
   return (
     <Box
@@ -29,8 +28,10 @@ const TaskCard = ({ task }: TaskCardProps) => {
       }}
       _active={{ transform: 'translateY(0)' }}
     >
-      <Box position="relative" h="160px">
-        <Image src={task.imageUrl} alt={task.title} w="full" h="full" objectFit="cover" />
+      <Box position="relative" h="160px" bg="gray.100">
+        {imageSrc && (
+          <Image src={imageSrc} alt={task.title} w="full" h="full" objectFit="cover" />
+        )}
 
         <Box
           position="absolute"
@@ -44,7 +45,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
           fontSize="xs"
           fontWeight="medium"
         >
-          {task.vacancies} جای خالی
+          {task.count -task.volunteerCount  }   جای خالی
         </Box>
       </Box>
 
@@ -57,7 +58,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
 
         <HStack gap="2" color={brandColors.textSecondary}>
           <FiClock size={14} />
-          <Text fontSize="sm">{task.schedule}</Text>
+          <Text fontSize="sm">زمان شروع: {task.startDateFa}</Text>
         </HStack>
 
         <HStack gap="2" flexWrap="wrap">
@@ -71,12 +72,12 @@ const TaskCard = ({ task }: TaskCardProps) => {
             color={brandColors.textSecondary}
           >
             <FiMapPin size={12} />
-            <Text>{neighborhoodLabel}</Text>
+            <Text>{task.neighborhoodTitle}</Text>
           </HStack>
 
-          {task.skills.map((skill) => (
+          {task.skillTitles.map((skillTitle, index) => (
             <Box
-              key={skill}
+              key={`${task.skills[index]}-${skillTitle}`}
               px="3"
               py="1"
               borderRadius="full"
@@ -84,7 +85,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
               fontSize="xs"
               color={brandColors.textSecondary}
             >
-              {getOptionLabel(SKILL_OPTIONS, skill)}
+              {skillTitle}
             </Box>
           ))}
         </HStack>
@@ -94,3 +95,5 @@ const TaskCard = ({ task }: TaskCardProps) => {
 };
 
 export default TaskCard;
+
+

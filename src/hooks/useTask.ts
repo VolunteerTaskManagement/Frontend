@@ -1,42 +1,23 @@
-import { useEffect, useState } from 'react';
-import { fetchTaskById } from '../services/taskService';
-import type { Task } from '../types/task';
+import { useEffect } from 'react';
+import { useTaskStore } from '../stores/taskStore';
 
-export function useTask(taskId: string | undefined) {
-  const [task, setTask] = useState<Task | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useTask(taskId: number | undefined) {
+  const taskDetailCache = useTaskStore((state) => state.taskDetailCache);
+  const taskDetailLoadingId = useTaskStore((state) => state.taskDetailLoadingId);
+  const taskDetailError = useTaskStore((state) => state.taskDetailError);
+  const fetchTaskById = useTaskStore((state) => state.fetchTaskById);
 
   useEffect(() => {
-    if (!taskId) {
-      setTask(null);
-      setIsLoading(false);
-      setError('وظیفه یافت نشد.');
-      return;
-    }
+    if (taskId === undefined) return;
+    fetchTaskById(taskId);
+  }, [taskId, fetchTaskById]);
 
-    const loadTask = async () => {
-      setIsLoading(true);
-      setError(null);
+  if (taskId === undefined) {
+    return { task: null, isLoading: false, error: 'وظیفه یافت نشد.' };
+  }
 
-      try {
-        const data = await fetchTaskById(taskId);
-        if (!data) {
-          setError('وظیفه یافت نشد.');
-          setTask(null);
-        } else {
-          setTask(data);
-        }
-      } catch {
-        setError('بارگذاری وظیفه با خطا مواجه شد.');
-        setTask(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const task = taskDetailCache[taskId] ?? null;
+  const isLoading = taskDetailLoadingId === taskId && !task;
 
-    loadTask();
-  }, [taskId]);
-
-  return { task, isLoading, error };
+  return { task, isLoading, error: task ? null : taskDetailError };
 }

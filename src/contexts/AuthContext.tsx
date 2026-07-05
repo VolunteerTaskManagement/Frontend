@@ -11,6 +11,8 @@ interface AuthUser {
   userName: string;
   role: string;
   isProfileComplete: boolean;
+  neighborhoodId: number | null;
+  skills: number[];
 }
 
 interface AuthContextType {

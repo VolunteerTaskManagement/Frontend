@@ -6,7 +6,7 @@ export interface ProfileResponse {
   error: {
     code: string;
     message: string;
-  };
+  } | null;
 }
 
 export interface Profile {
@@ -17,6 +17,7 @@ export interface Profile {
   email: string;
   phoneNumber: string;
   birthDate: string;
+  birthDateFa?: string;
   role: string;
   picName: string;
   picUrl: string;
@@ -24,6 +25,7 @@ export interface Profile {
   neighborhoodId: number; 
   skills: number[];
   skillTitles: string[];
+  nationalCode?: string;
 }
 
 export interface UpdateProfileResponse {
@@ -34,5 +36,5 @@ export interface UpdateProfileResponse {
   error: {
     code: string;
     message: string;
-  };
+  } | null;
 }
