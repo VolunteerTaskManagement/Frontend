@@ -22,6 +22,7 @@ import Dropdown from "../common/Dropdown";
 import InputBox from "../common/Inputbox";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
+import { createTask } from "../../services/createTaskService";
 
 
 interface CreateTaskProbs {
@@ -40,6 +41,48 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
   const [peopleCount, setPeopleCount] = useState("1");
   const [neighborhoodOptions, setNeighborhoodOptions] = useState< {label: string; value: string}[] >([]);
   const [skillOptions, setSkillOptions] = useState< {label: string; value: string}[] >([]);
+  const [image, setImage] = useState<File | null>(null);
+
+  const handleSubmit = async () => {
+    try {
+      if (!image) {
+        alert("عکس فعالیت را انتخاب کنید");
+        return;
+      }
+
+      await createTask({
+        pic: image,
+        title,
+        description,
+        neighborhoodId: Number(neighborhood),
+        address,
+        startDate: new Date().toISOString(),
+        count: Number(peopleCount),
+        skills: skillIds,
+      });
+
+      handleClose();
+    }
+    catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setNeighborhood("");
+    setAddress("");
+    setSkillIds([]);
+    setSelectedSkills([]);
+    setPeopleCount("1");
+    setImage(null);
+  };
 
   const handleNeighborhoodSearch = useCallback(async (text: string) => {
     try {
@@ -127,7 +170,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
       size="lg"
       open={open}
       onOpenChange={(e) => {
-        if (!e.open) onClose();
+        if (!e.open) handleClose();
       }}
     >
       <Portal>
@@ -177,6 +220,11 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     alignItems="stretch"
                     maxFiles={1}
                     accept={["image/png", "image/jpeg"]}
+                    onFileAccept={(details) => {
+                      const file = details.files[0];
+                      if (file)
+                        setImage(file);
+                    }}
                   >
                     <FileUpload.HiddenInput />
                     <FileUpload.Dropzone
@@ -333,11 +381,12 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                 _hover={{
                   bg: "#ed6c11",
                 }}
+                onClick={handleSubmit}
               >
                 ذخیره فعالیت
               </Button>
 
-              <Button w="full" borderRadius="8px" variant="ghost" onClick={onClose}>
+              <Button w="full" borderRadius="8px" variant="ghost" onClick={handleClose}>
                 انصراف
               </Button>
             </Dialog.Footer>
