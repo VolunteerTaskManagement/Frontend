@@ -27,6 +27,7 @@ interface TaskState {
   fetchTasks: (filters: TaskFilters) => Promise<void>;
   fetchNextPage: (filters: TaskFilters) => Promise<void>;
   fetchTaskById: (id: number) => Promise<void>;
+  invalidateTaskCache: (id: number) => void;
 }
 
 export const useTaskStore = create<TaskState>((set, get) => ({
@@ -124,4 +125,17 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       });
     }
   },
+
+  // آپدیت isAssigned در cache بدون پاک کردن کل داده
+  invalidateTaskCache: (id) =>
+    set((state) => {
+      const cached = state.taskDetailCache[id];
+      if (!cached) return {};
+      return {
+        taskDetailCache: {
+          ...state.taskDetailCache,
+          [id]: { ...cached, isAssigned: true },
+        },
+      };
+    }),
 }));
