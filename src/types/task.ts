@@ -70,14 +70,15 @@ export interface TaskDetail {
   picUrl: string;
   count: number;
   volunteerCount: number;
-  description: string;
-  mobile: string;
   coordinatorName: string;
+  mobile: string;
+  description: string;
   address: string;
   startDate: string;
   startDateFa: string;
   neighborhoodId: number;
   neighborhoodTitle: string;
+  isAssigned: boolean;
 }
 
 // ---- Query params: GET /api/Tasks ----
