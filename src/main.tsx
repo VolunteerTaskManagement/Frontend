@@ -10,6 +10,7 @@ import TaskDetail from './pages/Tasks/TaskDetail'
 import { appSystem } from './theme/system'
 import { AuthProvider } from './contexts/AuthContext'
 import VolunteerProfile from './pages/VolunteerProfile/VolunteerProfile'
+import MyTasks from './pages/MyTasks/MyTasks';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -23,6 +24,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/tasks/:taskId" element={<TaskDetail />} />
             <Route path="/volunteerprofile" element={<VolunteerProfile />} />
+            <Route path="/mytasks" element={<MyTasks />} />
 
           </Routes>
       </BrowserRouter>
@@ -30,3 +32,4 @@ createRoot(document.getElementById('root')!).render(
     </ChakraProvider>
   </StrictMode>
 )
+
