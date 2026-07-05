@@ -10,6 +10,7 @@ import TaskDetail from './pages/Tasks/TaskDetail'
 import { appSystem } from './theme/system'
 import { AuthProvider } from './contexts/AuthContext'
 import VolunteerProfile from './pages/VolunteerProfile/VolunteerProfile'
+import { Toaster } from './utils/toaster'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')!).render(
           </Routes>
       </BrowserRouter>
       </AuthProvider>
+      <Toaster></Toaster>
     </ChakraProvider>
   </StrictMode>
 )
