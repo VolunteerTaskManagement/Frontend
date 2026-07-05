@@ -109,7 +109,7 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
             fontSize="xs"
             fontWeight="medium"
           >
-            {task.count} جای خالی
+            {task.count - task.volunteerCount} جای خالی
           </Box>
         )}
       </Box>
