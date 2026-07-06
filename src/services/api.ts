@@ -2,7 +2,7 @@ import axios from "axios";
 import { authStorage } from "../services/authStorage";
 
 export const api = axios.create({
-  baseURL: "http://89.42.199.196:5213/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
