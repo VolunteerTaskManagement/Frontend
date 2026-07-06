@@ -1,6 +1,7 @@
 import { HStack, Text } from '@chakra-ui/react';
 import { FiSliders } from 'react-icons/fi';
 import { brandColors } from '../../theme/tokens';
+import { toPersianDigits } from '../../utils/formatters';
 
 interface TaskResultsBarProps {
   count: number;
@@ -17,7 +18,7 @@ const TaskResultsBar = ({ count }: TaskResultsBarProps) => {
       </HStack>
 
       <Text fontSize="sm" color={brandColors.textSecondary}>
-        {count} وظیفه یافت شد
+        {toPersianDigits(count)} وظیفه یافت شد
       </Text>
     </HStack>
   );
