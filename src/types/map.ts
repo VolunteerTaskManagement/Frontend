@@ -4,8 +4,8 @@ export interface MapLocation {
 }
 
 export interface NeshanMapProps {
-  value?: MapLocation;
-  onChange?: (location: MapLocation) => void;
+  value: MapLocation | null;
+  onChange: (location: MapLocation) => void;
   editable?: boolean;
   zoom?: number;
 }
