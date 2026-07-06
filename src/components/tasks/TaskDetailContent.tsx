@@ -3,10 +3,13 @@ import type { ReactNode } from 'react';
 import { FiArrowRight, FiClock, FiMapPin, FiUser } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MainButton from '../common/MainButton';
+import { useAuth } from '../../contexts/AuthContext';
 import { useAssignTask } from '../../hooks/useassigntask';
 import { useTask } from '../../hooks/useTask';
 import { useTaskImage } from '../../hooks/useTaskImage';
 import { brandColors } from '../../theme/tokens';
+import { toPersianDigits } from '../../utils/formatters';
+
 
 interface TaskDetailContentProps {
   taskId: number;
@@ -39,14 +42,14 @@ const DetailRow = ({
 const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const { task, isLoading, error } = useTask(taskId);
   const { imageSrc } = useTaskImage(task?.picUrl);
   const { assign, isLoading: isAssigning, error: assignError, isSuccess: assigned } = useAssignTask();
-
-  // اگه از my-tasks اومدیم، بازگشت به همونجا
   const fromMyTasks = location.state?.from === 'mytasks';
   const backPath = fromMyTasks ? '/mytasks' : '/tasks';
   const backLabel = fromMyTasks ? 'بازگشت به وظایف من' : 'بازگشت به وظایف';
+  const isVolunteer = user?.role === 'Volunteer';
 
   if (isLoading) {
     return (
@@ -109,7 +112,7 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
             fontSize="xs"
             fontWeight="medium"
           >
-            {task.count - task.volunteerCount} جای خالی
+            {toPersianDigits(task.count - task.volunteerCount)} جای خالی
           </Box>
         )}
       </Box>
@@ -149,10 +152,10 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
       <Box h="1px" bg="gray.100" />
 
       <VStack align="stretch" gap="4">
-        <DetailRow icon={<FiClock size={18} />} label="زمان برگزاری" value={task.startDateFa} />
+        <DetailRow icon={<FiClock size={18} />} label="زمان برگزاری" value={toPersianDigits(task.startDateFa)} />
         <DetailRow icon={<FiUser size={18} />} label="مسئول" value={task.coordinatorName} />
-        <DetailRow icon={<FiMapPin size={18} />} label="شماره تماس" value={task.mobile} />
-        <DetailRow icon={<FiMapPin size={18} />} label="آدرس" value={task.address} />
+        <DetailRow icon={<FiMapPin size={18} />} label="شماره تماس" value={toPersianDigits(task.mobile)} />
+        <DetailRow icon={<FiMapPin size={18} />} label="آدرس" value={toPersianDigits(task.address)} />
       </VStack>
 
       <Box>
@@ -160,12 +163,11 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
           توضیحات
         </Text>
         <Text fontSize="sm" color={brandColors.textSecondary} lineHeight="1.8">
-          {task.description}
+          {toPersianDigits(task.description)}
         </Text>
       </Box>
 
-      {/* دکمه ثبت‌نام فقط وقتی داوطلب هنوز ثبت‌نام نکرده نشون داده می‌شه */}
-      {!task.isAssigned && (
+      {isVolunteer && !task.isAssigned && (
         <>
           {assignError && (
             <Text fontSize="sm" color="red.500" textAlign="center">

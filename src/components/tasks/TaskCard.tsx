@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTaskImage } from '../../hooks/useTaskImage';
 import { brandColors } from '../../theme/tokens';
 import type { TaskListItem } from '../../types/task';
+import { toPersianDigits } from '../../utils/formatters';
+
 
 interface TaskCardProps {
   task: TaskListItem;
@@ -45,7 +47,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
           fontSize="xs"
           fontWeight="medium"
         >
-          {task.count -task.volunteerCount  }   جای خالی
+          {toPersianDigits(task.count -task.volunteerCount)}   جای خالی
         </Box>
       </Box>
 
@@ -58,7 +60,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
 
         <HStack gap="2" color={brandColors.textSecondary}>
           <FiClock size={14} />
-          <Text fontSize="sm">زمان شروع: {task.startDateFa}</Text>
+          <Text fontSize="sm">زمان شروع: {toPersianDigits(task.startDateFa)}</Text>
         </HStack>
 
         <HStack gap="2" flexWrap="wrap">

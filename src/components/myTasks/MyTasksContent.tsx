@@ -3,6 +3,7 @@ import { useMyTasks } from '../../hooks/useMyTasks';
 import { brandColors } from '../../theme/tokens';
 import MyTaskList from './MyTaskList';
 import MyTaskTabs from './MyTaskTabs';
+import { toPersianDigits } from '../../utils/formatters';
 
 const MyTasksContent = () => {
   const {
@@ -25,7 +26,7 @@ const MyTasksContent = () => {
           وظایف من
         </Text>
         <Text fontSize="sm" color={brandColors.textSecondary}>
-          {filteredCount} وظیفه در مجموع
+          {toPersianDigits(filteredCount)} وظیفه در مجموع
         </Text>
       </VStack>
 

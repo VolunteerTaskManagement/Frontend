@@ -15,6 +15,8 @@ import { useTaskImage } from '../../hooks/useTaskImage';
 import { brandColors } from '../../theme/tokens';
 import type { TaskListItem } from '../../types/task';
 import type { MyTaskTab } from '../../stores/myTaskStore';
+import { toPersianDigits } from '../../utils/formatters';
+
 
 interface MyTaskCardProps {
   task: TaskListItem;
@@ -95,7 +97,7 @@ const MyTaskCard = ({ task, activeTab }: MyTaskCardProps) => {
         {/* زمان */}
         <HStack gap="2" color={brandColors.textSecondary}>
           <FiClock size={14} />
-          <Text fontSize="sm">زمان شروع: {task.startDateFa}</Text>
+          <Text fontSize="sm">زمان شروع: {toPersianDigits(task.startDateFa)}</Text>
         </HStack>
 
         {/* محله و مهارت‌ها */}
