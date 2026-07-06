@@ -179,9 +179,8 @@ const VolunteerProfileCard = () => {
     if (!file) return;
 
     setProfileFile(file);
-
     setProfileImage(URL.createObjectURL(file));
-      toaster.create({
+    toaster.create({
       title: "عکس انتخاب شد",
       description: "برای ذخیره عکس، دکمه ذخیره تغییرات را بزنید",
       type: "info",
@@ -348,6 +347,13 @@ const VolunteerProfileCard = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
+
+      if (profileFile) {
+        toaster.create({
+          title: "در حال آپلود عکس...",
+          type: "info",
+        });
+      }
 
       await updateProfile({
         firstName,
@@ -542,23 +548,27 @@ const VolunteerProfileCard = () => {
         </Text>
       </VStack>
 
-      <InputBox
-        label="نام"
-        placeholder=""
-        icon={IoTextOutline}
-        value={firstName}
-        onChange={setFirstName}
-        readOnly
-      />
+      <Box opacity={0.6} pointerEvents="none" w="full" bg="gray.50" borderRadius="md">
+        <InputBox
+          label="نام"
+          placeholder=""
+          icon={IoTextOutline}
+          value={firstName}
+          onChange={setFirstName}
+          readOnly
+        />
+      </Box>
 
-      <InputBox
-        label="نام خانوادگی"
-        placeholder=""
-        icon={HiOutlineIdentification}
-        value={lastName}
-        onChange={setLastName}
-        readOnly
-      />
+      <Box opacity={0.6} pointerEvents="none" w="full" bg="gray.50" borderRadius="md">
+        <InputBox
+          label="نام خانوادگی"
+          placeholder=""
+          icon={HiOutlineIdentification}
+          value={lastName}
+          onChange={setLastName}
+          readOnly
+        />
+      </Box>
 
       <Calendar
         label="تاریخ تولد"
