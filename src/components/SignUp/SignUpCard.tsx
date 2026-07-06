@@ -11,6 +11,7 @@ import { IoTextOutline } from "react-icons/io5";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { register } from "../../services/auth.service";
+import { toaster } from "../../utils/toaster";
 
 
 const SignUpCard = () => {
@@ -22,18 +23,29 @@ const SignUpCard = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<number>(1);
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    try {
-      if (!firstName || !lastName || !userName || !password || !confirmPassword) {
-        console.log("❌ empty fields");
-        return;
-      }
+    if (!firstName || !lastName || !userName || !password || !confirmPassword) {
+      toaster.create({
+        title: "خطا",
+        description: "لطفاً تمام فیلدها را پر کنید",
+        type: "warning",
+      });
+      return;
+    }
 
-      if (password !== confirmPassword) {
-        console.log("❌ passwords not match");
-        return;
-      }
+    if (password !== confirmPassword) {
+      toaster.create({
+        title: "خطا",
+        description: "رمز عبور و تکرار آن با هم مطابقت ندارند",
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
 
       const payload = {
         userName,
@@ -48,9 +60,22 @@ const SignUpCard = () => {
 
       await register(payload);
 
+      toaster.create({
+        title: "ثبت‌نام موفقیت‌آمیز",
+        description: "حساب کاربری شما با موفقیت ایجاد شد",
+        type: "success",
+      });
+
       navigate("/login");
-    } catch (err) {
+    } catch (err: any) {
       console.log("register error", err);
+      toaster.create({
+        title: "خطا در ثبت‌نام",
+        description: err?.response?.data?.message || err?.message || "مشکلی پیش آمد، لطفاً دوباره تلاش کنید",
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -109,7 +134,12 @@ const SignUpCard = () => {
         onChange={setConfirmPassword}
       />
 
-      <MainButton text="ثبت‌نام" onClick={handleRegister} {...({ mt: "4" } as any)} />
+      <MainButton 
+        text={loading ? "در حال ثبت‌نام..." : "ثبت‌نام"} 
+        onClick={handleRegister} 
+        disabled={loading}
+        {...({ mt: "4" } as any)} 
+      />
 
       <VStack w="full" align="center" gap="2" mt="2">
         <Text fontSize="md" fontWeight="bold" textAlign="center">
