@@ -11,6 +11,7 @@ import InputBox from "../common/Inputbox";
 import MainButton from "../common/MainButton";
 
 import { getProfile, updateCoordinatorProfile } from "../../services/profileService";
+import { toaster } from "../../utils/toaster";
 import {
   IoTextOutline,
   IoFingerPrintOutline,
@@ -56,11 +57,22 @@ const CoordinatorProfileCard = () => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
+      toaster.create({
+        title: "خطا",
+        description: "حجم فایل نباید بیشتر از 5 مگابایت باشد",
+        type: "error",
+      });
       return;
     }
 
     setProfileFile(file);
     setProfileImage(URL.createObjectURL(file));
+
+    toaster.create({
+      title: "عکس انتخاب شد",
+      description: "برای ذخیره عکس، دکمه ذخیره تغییرات را بزنید",
+      type: "info",
+    });
   };
 
   useEffect(() => {
@@ -108,8 +120,13 @@ const CoordinatorProfileCard = () => {
           nationalCode: p.nationalCode ?? "",
           image: p.picUrl,
         });
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error loading coordinator profile:", err);
+        toaster.create({
+          title: "خطا",
+          description: err?.response?.data?.message || err?.message || "دریافت اطلاعات با خطا مواجه شد",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -134,6 +151,13 @@ const CoordinatorProfileCard = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
+
+      if (profileFile) {
+        toaster.create({
+          title: "در حال آپلود عکس...",
+          type: "info",
+        });
+      }
 
       const updateRes = await updateCoordinatorProfile({
         firstName,
@@ -164,10 +188,21 @@ const CoordinatorProfileCard = () => {
 
         setProfileFile(null);
         setIsDirty(false);
+        
+        toaster.create({
+          title: "موفق",
+          description: "اطلاعات با موفقیت ذخیره شد.",
+          type: "success",
+        });
       }
     } catch (err: any) {
       console.error(err);
       console.error("Save error response:", err?.response?.data);
+      toaster.create({
+        title: "خطا",
+        description: err?.response?.data?.message || err?.message || "مشکلی در ذخیره اطلاعات پیش آمد",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -313,23 +348,27 @@ const CoordinatorProfileCard = () => {
         </Text>
       </VStack>
 
-      <InputBox
-        label="نام"
-        placeholder="نام"
-        icon={IoTextOutline}
-        value={firstName}
-        onChange={setFirstName}
-        readOnly
-      />
+      <Box opacity={0.6} pointerEvents="none" w="full" bg="gray.50" borderRadius="md">
+        <InputBox
+          label="نام"
+          placeholder="نام"
+          icon={IoTextOutline}
+          value={firstName}
+          onChange={setFirstName}
+          readOnly
+        />
+      </Box>
 
-      <InputBox
-        label="نام خانوادگی"
-        placeholder="نام خانوادگی"
-        icon={HiOutlineIdentification}
-        value={lastName}
-        onChange={setLastName}
-        readOnly
-      />
+      <Box opacity={0.6} pointerEvents="none" w="full" bg="gray.50" borderRadius="md">
+        <InputBox
+          label="نام خانوادگی"
+          placeholder="نام خانوادگی"
+          icon={HiOutlineIdentification}
+          value={lastName}
+          onChange={setLastName}
+          readOnly
+        />
+      </Box>
 
       <InputBox
         label="شماره تلفن"
