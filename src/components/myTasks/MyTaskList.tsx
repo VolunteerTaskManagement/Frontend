@@ -2,20 +2,28 @@ import { Spinner, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useRef } from 'react';
 import { brandColors } from '../../theme/tokens';
 import type { TaskListItem } from '../../types/task';
-import TaskCard from './TaskCard';
+import type { MyTaskTab } from '../../stores/myTaskStore';
+import MyTaskCard from './MyTaskCard';
 
-interface TaskListProps {
+interface MyTaskListProps {
   tasks: TaskListItem[];
+  activeTab: MyTaskTab;
   isLoading: boolean;
   isLoadingMore: boolean;
   hasNextPage: boolean;
   onLoadMore: () => void;
 }
 
-const TaskList = ({ tasks, isLoading, isLoadingMore, hasNextPage, onLoadMore }: TaskListProps) => {
+const MyTaskList = ({
+  tasks,
+  activeTab,
+  isLoading,
+  isLoadingMore,
+  hasNextPage,
+  onLoadMore,
+}: MyTaskListProps) => {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  // وقتی sentinel وارد دید می‌شود، صفحه‌ی بعدی از API گرفته می‌شود (infinite scroll)
   useEffect(() => {
     if (!hasNextPage) return;
 
@@ -24,9 +32,7 @@ const TaskList = ({ tasks, isLoading, isLoadingMore, hasNextPage, onLoadMore }: 
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) {
-          onLoadMore();
-        }
+        if (entries[0]?.isIntersecting) onLoadMore();
       },
       { rootMargin: '200px' },
     );
@@ -41,7 +47,20 @@ const TaskList = ({ tasks, isLoading, isLoadingMore, hasNextPage, onLoadMore }: 
       <VStack py="12" gap="3">
         <Spinner color="brand.500" size="lg" />
         <Text color={brandColors.textSecondary} fontSize="sm">
-          در حال بارگذاری وظایف...
+          در حال بارگذاری...
+        </Text>
+      </VStack>
+    );
+  }
+
+  if (tasks.length === 0) {
+    return (
+      <VStack py="12" gap="2" textAlign="center">
+        <Text fontSize="md" fontWeight="bold" color={brandColors.textPrimary}>
+          وظیفه‌ای یافت نشد
+        </Text>
+        <Text fontSize="sm" color={brandColors.textSecondary}>
+          در این دسته وظیفه‌ای ندارید.
         </Text>
       </VStack>
     );
@@ -50,7 +69,7 @@ const TaskList = ({ tasks, isLoading, isLoadingMore, hasNextPage, onLoadMore }: 
   return (
     <VStack align="stretch" gap="4">
       {tasks.map((task) => (
-        <TaskCard key={task.id} task={task} />
+        <MyTaskCard key={task.id} task={task} activeTab={activeTab} />
       ))}
 
       {hasNextPage && (
@@ -62,4 +81,4 @@ const TaskList = ({ tasks, isLoading, isLoadingMore, hasNextPage, onLoadMore }: 
   );
 };
 
-export default TaskList;
+export default MyTaskList;

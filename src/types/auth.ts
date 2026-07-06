@@ -7,6 +7,8 @@ export interface LoginResponse {
     accessToken: string;
     refreshToken: string;
     isProfileComplete: boolean;
+    neighborhoodId: number | null;
+    skills: number[];
   };
   isSuccess: boolean;
   isFailure: boolean;

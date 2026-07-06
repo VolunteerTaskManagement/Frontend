@@ -4,10 +4,11 @@ import TaskDetailContent from '../../components/tasks/TaskDetailContent';
 
 const TaskDetail = () => {
   const { taskId } = useParams<{ taskId: string }>();
+  const numericTaskId = Number(taskId);
 
   return (
     <MobileLayout>
-      <TaskDetailContent taskId={taskId ?? ''} />
+      <TaskDetailContent taskId={Number.isNaN(numericTaskId) ? -1 : numericTaskId} />
     </MobileLayout>
   );
 };

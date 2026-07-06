@@ -1,15 +1,23 @@
 import { create } from 'zustand';
-import { DEFAULT_TASK_FILTERS } from '../constants/tasks';
 import type { FilterType, TaskFilters } from '../types/task';
+
+export const DEFAULT_TASK_FILTERS: TaskFilters = {
+  search: '',
+  skillIds: [],
+  neighborhoodIds: [],
+  statusIds: [],
+};
 
 interface TaskFiltersState {
   filters: TaskFilters;
   openFilter: FilterType | null;
   setSearch: (search: string) => void;
-  toggleSkill: (skill: string) => void;
-  toggleNeighborhood: (neighborhood: string) => void;
+  toggleSkill: (skillId: number) => void;
+  toggleNeighborhood: (neighborhoodId: number) => void;
+  toggleStatus: (statusId: number) => void;
   setOpenFilter: (filter: FilterType | null) => void;
   resetFilters: () => void;
+  initFromProfile: (skillIds: number[], neighborhoodId: number | null) => void;
 }
 
 export const useTaskFiltersStore = create<TaskFiltersState>((set) => ({
@@ -21,23 +29,33 @@ export const useTaskFiltersStore = create<TaskFiltersState>((set) => ({
       filters: { ...state.filters, search },
     })),
 
-  toggleSkill: (skill) =>
+  toggleSkill: (skillId) =>
     set((state) => ({
       filters: {
         ...state.filters,
-        skills: state.filters.skills.includes(skill)
-          ? state.filters.skills.filter((item) => item !== skill)
-          : [...state.filters.skills, skill],
+        skillIds: state.filters.skillIds.includes(skillId)
+          ? state.filters.skillIds.filter((item) => item !== skillId)
+          : [...state.filters.skillIds, skillId],
       },
     })),
 
-  toggleNeighborhood: (neighborhood) =>
+  toggleNeighborhood: (neighborhoodId) =>
     set((state) => ({
       filters: {
         ...state.filters,
-        neighborhoods: state.filters.neighborhoods.includes(neighborhood)
-          ? state.filters.neighborhoods.filter((item) => item !== neighborhood)
-          : [...state.filters.neighborhoods, neighborhood],
+        neighborhoodIds: state.filters.neighborhoodIds.includes(neighborhoodId)
+          ? state.filters.neighborhoodIds.filter((item) => item !== neighborhoodId)
+          : [...state.filters.neighborhoodIds, neighborhoodId],
+      },
+    })),
+
+  toggleStatus: (statusId) =>
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        statusIds: state.filters.statusIds.includes(statusId)
+          ? state.filters.statusIds.filter((item) => item !== statusId)
+          : [...state.filters.statusIds, statusId],
       },
     })),
 
@@ -48,9 +66,19 @@ export const useTaskFiltersStore = create<TaskFiltersState>((set) => ({
       filters: DEFAULT_TASK_FILTERS,
       openFilter: null,
     }),
+
+  // تنظیم فیلترهای اولیه بر اساس پروفایل داوطلب بعد از لاگین
+  initFromProfile: (skillIds, neighborhoodId) =>
+    set({
+      filters: {
+        ...DEFAULT_TASK_FILTERS,
+        skillIds,
+        neighborhoodIds: neighborhoodId ? [neighborhoodId] : [],
+      },
+    }),
 }));
 
-const arraysEqual = (a: string[], b: string[]) =>
+const arraysEqual = (a: number[], b: number[]) =>
   a.length === b.length && a.every((item, index) => item === b[index]);
 
 export const selectHasActiveFilters = (state: TaskFiltersState) => {
@@ -58,7 +86,8 @@ export const selectHasActiveFilters = (state: TaskFiltersState) => {
 
   return (
     filters.search.trim().length > 0 ||
-    !arraysEqual(filters.skills, DEFAULT_TASK_FILTERS.skills) ||
-    !arraysEqual(filters.neighborhoods, DEFAULT_TASK_FILTERS.neighborhoods)
+    !arraysEqual(filters.skillIds, DEFAULT_TASK_FILTERS.skillIds) ||
+    !arraysEqual(filters.neighborhoodIds, DEFAULT_TASK_FILTERS.neighborhoodIds) ||
+    !arraysEqual(filters.statusIds, DEFAULT_TASK_FILTERS.statusIds)
   );
 };

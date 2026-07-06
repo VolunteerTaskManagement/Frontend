@@ -1,14 +1,78 @@
-import { MOCK_TASKS } from '../constants/tasks';
-import type { Task } from '../types/task';
+import { api } from './api';
+import type { ApiResponse, PaginatedResult, TaskDetail, TaskListItem, TaskQueryParams } from '../types/task';
 
-const SIMULATED_DELAY_MS = 400;
+const buildTaskQueryString = (params: TaskQueryParams): string => {
+  const parts: string[] = [];
 
-export async function fetchTasks(): Promise<Task[]> {
-  await new Promise((resolve) => setTimeout(resolve, SIMULATED_DELAY_MS));
-  return [...MOCK_TASKS];
-}
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
 
-export async function fetchTaskById(id: string): Promise<Task | null> {
-  await new Promise((resolve) => setTimeout(resolve, SIMULATED_DELAY_MS));
-  return MOCK_TASKS.find((task) => task.id === id) ?? null;
-}
+    if (Array.isArray(value)) {
+      value.forEach((item) => parts.push(`${key}=${encodeURIComponent(String(item))}`));
+    } else {
+      parts.push(`${key}=${encodeURIComponent(String(value))}`);
+    }
+  });
+
+  return parts.join('&');
+};
+
+export const fetchTasks = async (
+  params: TaskQueryParams
+): Promise<ApiResponse<PaginatedResult<TaskListItem>>> => {
+  const queryString = buildTaskQueryString(params);
+  const res = await api.get(`/Tasks?${queryString}`);
+
+  return res.data;
+};
+
+export const fetchTaskById = async (
+  id: number
+): Promise<ApiResponse<TaskDetail>> => {
+  const res = await api.get(`/Tasks/${id}`);
+
+  return res.data;
+};
+
+export const fetchTaskImage = async (fileUrl: string): Promise<Blob> => {
+  const res = await api.get("/MediaFiles/StramImg", {
+    params: { FileUrl: fileUrl },
+    responseType: "blob",
+  });
+
+  return res.data;
+};
+
+export const assignTask = async (
+  id: number
+): Promise<ApiResponse<null>> => {
+  const res = await api.post("/Tasks/assign", { id });
+
+  return res.data;
+};
+
+export const fetchMyTasks = async (
+  params: TaskQueryParams
+): Promise<ApiResponse<PaginatedResult<TaskListItem>>> => {
+  const queryString = buildTaskQueryString(params);
+  const res = await api.get(`/Tasks/my?${queryString}`);
+ 
+  return res.data;
+};
+ 
+export const unassignTask = async (
+  id: number
+): Promise<ApiResponse<null>> => {
+  const res = await api.post("/Tasks/unassign", { id });
+ 
+  return res.data;
+};
+ 
+export const completeTask = async (
+  id: number
+): Promise<ApiResponse<null>> => {
+  const res = await api.post("/Tasks/complete-by-volunteer", { id });
+ 
+  return res.data;
+};
+ 
