@@ -15,6 +15,7 @@ import { login } from "../../services/auth.service";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTaskFiltersStore } from "../../stores/taskFiltersStore";
 import { toaster } from "../../utils/toaster";
+import logo from "../../assets/images/logo.svg"
 
 const LoginCard = () => {
   const [username, setUsername] = useState("");
@@ -76,7 +77,7 @@ const LoginCard = () => {
   return (
     <VStack gap="4" w="full" align="center" py="4">
       <Image
-        src="/src/assets/images/logo.svg"
+        src={logo}
         boxSize="200px"
         alignSelf="center"
         mb="-4"
