@@ -16,6 +16,8 @@ import { brandColors } from '../../theme/tokens';
 import type { TaskListItem } from '../../types/task';
 import type { MyTaskTab } from '../../stores/myTaskStore';
 import { toPersianDigits } from '../../utils/formatters';
+import { toaster } from '../../utils/toaster';
+
 
 
 interface MyTaskCardProps {
@@ -38,8 +40,32 @@ const MyTaskCard = ({ task, activeTab }: MyTaskCardProps) => {
   const showActions = activeTab === 'active';
 
   const handleConfirm = async () => {
-    if (confirm.type === 'complete') await complete(task.id);
-    if (confirm.type === 'unassign') await unassign(task.id);
+    if (confirm.type === 'complete') {
+      const result = await complete(task.id);
+
+      toaster.create({
+        type: result.success ? 'success' : 'error',
+        title: result.success ? 'ثبت شد' : 'خطا',
+        description: result.message,
+        meta: {
+          closable: true,
+        },
+      });
+    }
+
+    if (confirm.type === 'unassign') {
+      const result = await unassign(task.id);
+
+      toaster.create({
+        type: result.success ? 'success' : 'error',
+        title: result.success ? 'کناره‌گیری انجام شد' : 'خطا',
+        description: result.message,
+        meta: {
+          closable: true,
+        },
+      });
+    }
+
     setConfirm({ type: null });
   };
 
@@ -183,9 +209,9 @@ const MyTaskCard = ({ task, activeTab }: MyTaskCardProps) => {
                   color="white"
                   _hover={{ bg: brandColors.primaryHover }}
                   onClick={() => setConfirm({ type: 'complete' })}
-                  leftIcon={<FiCheckCircle size={14} />}
                 >
                   انجام شد
+                  {<FiCheckCircle size={14} />}
                 </Button>
                 <Button
                   flex="1"
@@ -196,9 +222,9 @@ const MyTaskCard = ({ task, activeTab }: MyTaskCardProps) => {
                   color="red.500"
                   _hover={{ bg: 'red.50' }}
                   onClick={() => setConfirm({ type: 'unassign' })}
-                  leftIcon={<FiXCircle size={14} />}
                 >
                   کناره‌گیری
+                  {<FiXCircle size={14} />}
                 </Button>
               </HStack>
             )}
