@@ -1,6 +1,6 @@
 import { Box, HStack, Image, Spinner, Text, VStack } from '@chakra-ui/react';
 import type { ReactNode } from 'react';
-import { FiArrowRight, FiClock, FiMapPin, FiUser } from 'react-icons/fi';
+import { FiArrowRight, FiClock, FiMapPin, FiUser, FiPhone } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MainButton from '../common/MainButton';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,6 +9,7 @@ import { useTask } from '../../hooks/useTask';
 import { useTaskImage } from '../../hooks/useTaskImage';
 import { brandColors } from '../../theme/tokens';
 import { toPersianDigits } from '../../utils/formatters';
+import NeshanMap from '../common/Map';
 
 
 interface TaskDetailContentProps {
@@ -154,7 +155,7 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
       <VStack align="stretch" gap="4">
         <DetailRow icon={<FiClock size={18} />} label="زمان برگزاری" value={toPersianDigits(task.startDateFa)} />
         <DetailRow icon={<FiUser size={18} />} label="مسئول" value={task.coordinatorName} />
-        <DetailRow icon={<FiMapPin size={18} />} label="شماره تماس" value={toPersianDigits(task.mobile)} />
+        <DetailRow icon={<FiPhone size={18} />} label="شماره تماس" value={toPersianDigits(task.mobile)} />
         <DetailRow icon={<FiMapPin size={18} />} label="آدرس" value={toPersianDigits(task.address)} />
       </VStack>
 
@@ -165,6 +166,20 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
         <Text fontSize="sm" color={brandColors.textSecondary} lineHeight="1.8">
           {toPersianDigits(task.description)}
         </Text>
+      </Box>
+      
+      <Box>
+        <Text mb="2" fontSize="sm" fontWeight="bold" color={brandColors.textPrimary}>
+          موقعیت روی نقشه
+        </Text>
+        <NeshanMap
+          editable={false}
+          value={{
+            lat: task.lat,
+            lng: task.lng,
+          }}
+          zoom={12}
+        />
       </Box>
 
       {isVolunteer && !task.isAssigned && (
