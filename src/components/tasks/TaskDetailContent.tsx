@@ -9,6 +9,7 @@ import { useTask } from '../../hooks/useTask';
 import { useTaskImage } from '../../hooks/useTaskImage';
 import { brandColors } from '../../theme/tokens';
 import { toPersianDigits } from '../../utils/formatters';
+import { toaster } from '../../utils/toaster';
 
 
 interface TaskDetailContentProps {
@@ -45,11 +46,27 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
   const { user } = useAuth();
   const { task, isLoading, error } = useTask(taskId);
   const { imageSrc } = useTaskImage(task?.picUrl);
-  const { assign, isLoading: isAssigning, error: assignError, isSuccess: assigned } = useAssignTask();
+  const { assign, isLoading: isAssigning } = useAssignTask();
   const fromMyTasks = location.state?.from === 'mytasks';
   const backPath = fromMyTasks ? '/mytasks' : '/tasks';
   const backLabel = fromMyTasks ? 'بازگشت به وظایف من' : 'بازگشت به وظایف';
   const isVolunteer = user?.role === 'Volunteer';
+  const handleAssign = async () => {
+  const result = await assign(taskId);
+
+  toaster.create({
+    type: result.success ? 'success' : 'error',
+    title: result.success ? 'ثبت‌نام انجام شد' : 'خطا',
+    description: result.message,
+    meta: {
+      closable: true,
+    },
+  });
+
+  if (result.success) {
+    // navigate(0);
+  }
+};
 
   if (isLoading) {
     return (
@@ -168,37 +185,15 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
       </Box>
 
       {isVolunteer && !task.isAssigned && (
-        <>
-          {assignError && (
-            <Text fontSize="sm" color="red.500" textAlign="center">
-              {assignError}
-            </Text>
-          )}
-
-          {assigned ? (
-            <Box
-              w="full"
-              p="3"
-              borderRadius="12px"
-              bg={brandColors.primaryLight}
-              textAlign="center"
-            >
-              <Text fontSize="sm" fontWeight="bold" color={brandColors.primary}>
-                ثبت‌نام شما با موفقیت انجام شد
-              </Text>
-            </Box>
-          ) : (
-            <Box w="full" display="flex" justifyContent="center" pt="2">
-              <MainButton
-                text={isAssigning ? 'در حال ثبت‌نام...' : 'ثبت‌نام'}
-                w="full"
-                maxW="280px"
-                onClick={() => assign(taskId)}
-                disabled={isAssigning}
-              />
-            </Box>
-          )}
-        </>
+        <Box w="full" display="flex" justifyContent="center" pt="2">
+          <MainButton
+            text={isAssigning ? 'در حال ثبت‌نام...' : 'ثبت‌نام'}
+            w="full"
+            maxW="280px"
+            onClick={handleAssign}
+            disabled={isAssigning}
+          />
+        </Box>
       )}
     </VStack>
   );

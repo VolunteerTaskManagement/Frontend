@@ -31,7 +31,7 @@ createRoot(document.getElementById('root')!).render(
         </Routes>
       </BrowserRouter> 
       </AuthProvider>
-      <Toaster />
+      <Toaster></Toaster>
     </ChakraProvider>
   </StrictMode>
 )
