@@ -7,7 +7,7 @@ const PAGE_SIZE = 10;
 export type MyTaskTab = 'active' | 'completed' | 'cancelled';
 
 export const TAB_STATUS_MAP: Record<MyTaskTab, number[]> = {
-  active: [1, 2],
+  active: [2],
   completed: [3],
   cancelled: [4],
 };
@@ -38,7 +38,7 @@ interface MyTaskState {
   fetchMyTasks: () => Promise<void>;
   fetchNextPage: () => Promise<void>;
   removeTask: (id: number) => void;
-  updateTaskConfirmation: (id: number) => void; // متد جدید
+  updateTaskConfirmation: (id: number) => void;
 }
 
 export const useMyTaskStore = create<MyTaskState>((set, get) => ({
