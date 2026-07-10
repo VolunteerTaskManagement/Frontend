@@ -9,6 +9,7 @@ import { useTask } from '../../hooks/useTask';
 import { useTaskImage } from '../../hooks/useTaskImage';
 import { brandColors } from '../../theme/tokens';
 import { toPersianDigits } from '../../utils/formatters';
+import NeshanMap from '../common/Map';
 import { toaster } from '../../utils/toaster';
 
 
@@ -186,6 +187,20 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
         <Text fontSize="sm" color={brandColors.textSecondary} lineHeight="1.8">
           {toPersianDigits(task.description)}
         </Text>
+      </Box>
+      
+      <Box>
+        <Text mb="2" fontSize="sm" fontWeight="bold" color={brandColors.textPrimary}>
+          موقعیت روی نقشه
+        </Text>
+        <NeshanMap
+          editable={false}
+          value={{
+            lat: task.lat,
+            lng: task.lng,
+          }}
+          zoom={12}
+        />
       </Box>
 
       {isVolunteer && !task.isAssigned && (

@@ -9,6 +9,8 @@ export interface CreateTaskDto {
   startDate: string;
   count: number;
   skills: number[];
+  lat: number;
+  lng: number;
 }
 
 export const createTask = async (data: CreateTaskDto) => {
@@ -21,6 +23,8 @@ export const createTask = async (data: CreateTaskDto) => {
   formData.append("Address", data.address);
   formData.append("StartDate", data.startDate);
   formData.append("Count", data.count.toString());
+  formData.append("Lat", data.lat.toString());
+  formData.append("Lng", data.lng.toString());
 
   data.skills.forEach((id) => {
     formData.append("Skills", id.toString());

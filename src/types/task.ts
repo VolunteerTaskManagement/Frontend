@@ -79,6 +79,8 @@ export interface TaskDetail {
   neighborhoodId: number;
   neighborhoodTitle: string;
   isAssigned: boolean;
+  lat: number;
+  lng: number;
 }
 
 // ---- Query params: GET /api/Tasks ----

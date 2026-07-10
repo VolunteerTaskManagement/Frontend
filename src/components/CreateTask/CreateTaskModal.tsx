@@ -23,6 +23,9 @@ import InputBox from "../common/Inputbox";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import { createTask } from "../../services/createTaskService";
+import { ReverseGeocode } from "../../services/reverseGeocodingService";
+import NeshanMap from "../common/Map";
+import type { MapLocation } from "../../types/map";
 
 
 interface CreateTaskProbs {
@@ -42,11 +45,17 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
   const [neighborhoodOptions, setNeighborhoodOptions] = useState< {label: string; value: string}[] >([]);
   const [skillOptions, setSkillOptions] = useState< {label: string; value: string}[] >([]);
   const [image, setImage] = useState<File | null>(null);
+  const [location, setLocation] = useState<MapLocation | null>(null);
+  const [zoom, setZoom] = useState(10);
 
   const handleSubmit = async () => {
     try {
       if (!image) {
         alert("عکس فعالیت را انتخاب کنید");
+        return;
+      }
+      if (!location) {
+        alert("موقعیت را روی نقشه انتخاب کنید.")
         return;
       }
 
@@ -59,6 +68,8 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
         startDate: new Date().toISOString(),
         count: Number(peopleCount),
         skills: skillIds,
+        lat: location.lat,
+        lng: location.lng,
       });
 
       handleClose();
@@ -82,6 +93,8 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
     setSelectedSkills([]);
     setPeopleCount("1");
     setImage(null);
+    setLocation(null);
+    setZoom(10);
   };
 
   const handleNeighborhoodSearch = useCallback(async (text: string) => {
@@ -296,24 +309,6 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   </Box>
                 </Field.Root>
 
-                {/* Neighborhood */}
-                <Dropdown
-                  label="محله"
-                  placeholder="محله خود را انتخاب کنید"
-                  options={neighborhoodOptions}
-                  value={neighborhood}
-                  onChange={setNeighborhood}
-                  onSearch={handleNeighborhoodSearch}
-                />
-
-                {/* Address */}
-                <InputBox
-                  label="آدرس"
-                  placeholder="آدرس کامل را وارد کنید"
-                  value={address}
-                  onChange={setAddress}
-                />
-
                 {/* Skills */}
                 <Dropdown
                   label="مهارت ها"
@@ -350,6 +345,52 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     ))}
                   </Wrap>
                 )}
+
+                {/* Neighborhood */}
+                <Dropdown
+                  label="محله"
+                  placeholder="محله خود را انتخاب کنید"
+                  options={neighborhoodOptions}
+                  value={neighborhood}
+                  onChange={setNeighborhood}
+                  onSearch={handleNeighborhoodSearch}
+                />
+
+                {/* Map */}
+                <Box w="full" px="16px">
+                  {/* <Text
+                    mb="2"
+                    pr="2"
+                    fontWeight="bold"
+                    textAlign="right"
+                  >
+                    موقعیت روی نقشه
+                  </Text> */}
+                  <NeshanMap
+                    editable
+                    zoom={zoom}
+                    value={location}
+                    onChange={async (loc) => {
+                      setLocation(loc);
+                      setZoom(15);
+                      try {
+                        const result = await ReverseGeocode(loc.lat, loc.lng);
+                        setAddress(result.formatted_address);
+                      }
+                      catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                  />
+                </Box>
+
+                {/* Address */}
+                <InputBox
+                  label="آدرس"
+                  placeholder="آدرس کامل را وارد کنید"
+                  value={address}
+                  onChange={setAddress}
+                />
 
                 {/* Count */}
                 <Box w="full" px="16px">
