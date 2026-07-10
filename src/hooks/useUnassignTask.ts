@@ -1,13 +1,20 @@
 import { useState } from 'react';
 import { unassignTask } from '../services/taskService';
 import { useMyTaskStore } from '../stores/myTaskStore';
+import { extractErrorMessage } from '../utils/Extracterrormessage';
+
+interface ActionResult {
+  success: boolean;
+  message: string;
+}
 
 export function useUnassignTask() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const removeTask = useMyTaskStore((state) => state.removeTask);
 
-  const unassign = async (taskId: number): Promise<boolean> => {
+  const unassign = async (taskId: number): Promise<ActionResult> => {
     setIsLoading(true);
     setError(null);
 
@@ -15,19 +22,37 @@ export function useUnassignTask() {
       const res = await unassignTask(taskId);
 
       if (!res.isSuccess) {
-        setError(res.message ?? 'کناره‌گیری با خطا مواجه شد.');
-        return false;
+        const message = res.message ?? 'کناره‌گیری با خطا مواجه شد.';
+        setError(message);
+
+        return {
+          success: false,
+          message,
+        };
       }
 
       removeTask(taskId);
-      return true;
-    } catch {
-      setError('کناره‌گیری با خطا مواجه شد.');
-      return false;
+
+      return {
+        success: true,
+        message: 'با موفقیت از وظیفه کناره‌گیری کردید.',
+      };
+    } catch (err) {
+      const message = extractErrorMessage(err, 'کناره‌گیری با خطا مواجه شد.');
+      setError(message);
+
+      return {
+        success: false,
+        message,
+      };
     } finally {
       setIsLoading(false);
     }
   };
 
-  return { unassign, isLoading, error };
+  return {
+    unassign,
+    isLoading,
+    error,
+  };
 }

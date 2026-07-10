@@ -4,46 +4,45 @@ import type { TaskListItem, TaskQueryParams } from '../types/task';
 
 const PAGE_SIZE = 10;
 
-export type MyTaskTab = 'active' | 'completed' | 'cancelled';
+export type CoordinatorTaskTab = 'open' | 'completed' | 'cancelled';
 
-export const TAB_STATUS_MAP: Record<MyTaskTab, number[]> = {
-  active: [1,2],
+export const COORDINATOR_TAB_STATUS_MAP: Record<CoordinatorTaskTab, number[]> = {
+  open: [1, 2],
   completed: [3],
   cancelled: [4],
 };
 
-export const TAB_LABELS: Record<MyTaskTab, string> = {
-  active: 'باز',
-  completed: 'انجام شده',
-  cancelled: 'لغو شده',
+export const COORDINATOR_TAB_LABELS: Record<CoordinatorTaskTab, string> = {
+  open: 'باز',
+  completed: 'پایان‌یافته',
+  cancelled: 'لغوشده',
 };
 
 // بک‌اند PageIndex را 1-based حساب می‌کند (اولین صفحه = 1، نه 0)
-const buildParams = (tab: MyTaskTab, pageIndex: number): TaskQueryParams => ({
-  Statuses: TAB_STATUS_MAP[tab],
+const buildParams = (tab: CoordinatorTaskTab, pageIndex: number): TaskQueryParams => ({
+  Statuses: COORDINATOR_TAB_STATUS_MAP[tab],
   PageIndex: pageIndex,
   PageSize: PAGE_SIZE,
 });
 
-interface MyTaskState {
+interface CoordinatorTaskState {
   tasks: TaskListItem[];
-  activeTab: MyTaskTab;
+  activeTab: CoordinatorTaskTab;
   pageIndex: number;
   hasNextPage: boolean;
   filteredCount: number;
   isLoading: boolean;
   isLoadingMore: boolean;
   error: string | null;
-  setActiveTab: (tab: MyTaskTab) => void;
-  fetchMyTasks: () => Promise<void>;
+  setActiveTab: (tab: CoordinatorTaskTab) => void;
+  fetchTasks: () => Promise<void>;
   fetchNextPage: () => Promise<void>;
-  removeTask: (id: number) => void;
-  updateTaskConfirmation: (id: number) => void;
+  removeTaskLocally: (id: number) => void;
 }
 
-export const useMyTaskStore = create<MyTaskState>((set, get) => ({
+export const useCoordinatorTaskStore = create<CoordinatorTaskState>((set, get) => ({
   tasks: [],
-  activeTab: 'active',
+  activeTab: 'open',
   pageIndex: 1,
   hasNextPage: false,
   filteredCount: 0,
@@ -53,10 +52,10 @@ export const useMyTaskStore = create<MyTaskState>((set, get) => ({
 
   setActiveTab: (tab) => {
     set({ activeTab: tab, tasks: [], pageIndex: 1, hasNextPage: false });
-    get().fetchMyTasks();
+    get().fetchTasks();
   },
 
-  fetchMyTasks: async () => {
+  fetchTasks: async () => {
     const { activeTab } = get();
     set({ isLoading: true, error: null });
 
@@ -64,7 +63,7 @@ export const useMyTaskStore = create<MyTaskState>((set, get) => ({
       const res = await fetchMyTasks(buildParams(activeTab, 1));
 
       if (!res.isSuccess) {
-        set({ error: res.message ?? 'بارگذاری وظایف با خطا مواجه شد.', isLoading: false });
+        set({ error: res.message ?? 'بارگذاری تسک‌ها با خطا مواجه شد.', isLoading: false });
         return;
       }
 
@@ -76,7 +75,7 @@ export const useMyTaskStore = create<MyTaskState>((set, get) => ({
         isLoading: false,
       });
     } catch {
-      set({ error: 'بارگذاری وظایف با خطا مواجه شد.', isLoading: false });
+      set({ error: 'بارگذاری تسک‌ها با خطا مواجه شد.', isLoading: false });
     }
   },
 
@@ -105,15 +104,8 @@ export const useMyTaskStore = create<MyTaskState>((set, get) => ({
     }
   },
 
-  removeTask: (id) =>
+  // بعد از لغو یا تایید پایان تسک، آیتم از لیست تب فعلی حذف می‌شود
+  // (چون وضعیتش عوض شده و دیگر متعلق به این تب نیست)
+  removeTaskLocally: (id) =>
     set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) })),
-
-  updateTaskConfirmation: (id) =>
-    set((state) => ({
-      tasks: state.tasks.map((task) =>
-        task.id === id
-          ? { ...task, isConfirmedByVolunteer: true }
-          : task
-      ),
-    })),
 }));

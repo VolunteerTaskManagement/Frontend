@@ -18,6 +18,7 @@ import SkillDropdown from "./SkillDropdown";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import { getProfile, updateProfile } from "../../services/profileService";
+import { toaster } from "../../utils/toaster";
 
 import {
   IoTextOutline,
@@ -31,7 +32,6 @@ import {
   HiOutlinePhone,
 } from "react-icons/hi";
 
-// تابع کمکی برای نرمال‌سازی متن‌های فارسی/عربی (جهت مقایسه دقیق عنوان محله)
 const normalizeText = (str?: string | null): string => {
   if (!str) return "";
   return str
@@ -64,6 +64,7 @@ const VolunteerProfileCard = () => {
   const [saving, setSaving] = useState(false);
 
   const [isDirty, setIsDirty] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const [originalProfile, setOriginalProfile] = useState<any>(null);
 
@@ -77,7 +78,6 @@ const VolunteerProfileCard = () => {
 
   const isoToCalendar = (iso?: string | null) => {
     if (!iso) return "";
-    // استخراج مستقیم سال، ماه و روز از رشته (جلوگیری از تغییر روز و ماه به دلیل اختلاف ساعت محلی و UTC در جاوااسکریپت)
     const clean = iso.split("T")[0].replace(/-/g, "/");
     const parts = clean.split("/");
     if (parts.length === 3) {
@@ -97,7 +97,6 @@ const VolunteerProfileCard = () => {
     const yy = Number(y) || 1400;
     const mm = String(Number(m) || 1).padStart(2, "0");
     const dd = String(Number(d) || 1).padStart(2, "0");
-    // ساخت رشته استاندارد ISO بدون استفاده از toISOString برای جلوگیری از جابجایی روز به عقب
     return `${yy}-${mm}-${dd}T00:00:00`;
   };
 
@@ -113,8 +112,7 @@ const VolunteerProfileCard = () => {
           }))
         );
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
     }
   }, []);
 
@@ -134,8 +132,7 @@ const VolunteerProfileCard = () => {
           }))
         );
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
     }
   }, []);
 
@@ -182,8 +179,12 @@ const VolunteerProfileCard = () => {
     if (!file) return;
 
     setProfileFile(file);
-
     setProfileImage(URL.createObjectURL(file));
+    toaster.create({
+      title: "عکس انتخاب شد",
+      description: "برای ذخیره عکس، دکمه ذخیره تغییرات را بزنید",
+      type: "info",
+    });
   };
 
   useEffect(() => {
@@ -200,6 +201,19 @@ const VolunteerProfileCard = () => {
 
         const p = res.value;
 
+        const role = (p.role || "").toString().toLowerCase();
+        const isCoordinator =
+          role.includes("coordin") || 
+          role.includes("هماهنگ") || 
+          role === "coordinator" ||
+          role === "1";
+
+        if (isCoordinator) {
+          setAccessDenied(true);
+          setLoading(false);
+          return;
+        }
+
         setFirstName(p.firstName);
         setLastName(p.lastName);
         setPhoneNumber(p.phoneNumber ?? "");
@@ -208,19 +222,16 @@ const VolunteerProfileCard = () => {
         setAbilities(p.skillTitles);
         setAbilityIds(p.skills);
 
-        // تنظیم محله (با نرمال‌سازی و جستجوی جامع)
         let resolvedId = p.neighborhoodId || 0;
         let resolvedTitle = p.neighborhoodTitle || "";
 
         try {
-          // ۱. دریافت لیست کل محله‌ها برای دراپ‌داون و تطبیق دقیق
           let allItems: { id: number; title: string }[] = [];
           const allRes = await searchNeighborhoods("");
           if (allRes.isSuccess && allRes.value) {
             allItems = [...allRes.value];
           }
 
-          // ۲. اگر لیست اولیه خالی بود یا عنوان در آن پیدا نشد، با خود عنوان جستجو می‌کنیم
           if (
             p.neighborhoodTitle &&
             !allItems.some(
@@ -238,7 +249,6 @@ const VolunteerProfileCard = () => {
             }
           }
 
-          // به‌روزرسانی گزینه‌های دراپ‌داون
           if (allItems.length > 0) {
             setNeighborhoodOptions(
               allItems.map((item) => ({
@@ -248,7 +258,6 @@ const VolunteerProfileCard = () => {
             );
           }
 
-          // ۳. پیدا کردن محله انتخاب شده بر اساس ID یا عنوان نرمال‌شده (رفع مشکل کاراکترهای عربی/فارسی و فاصله‌ها)
           let selected = null;
           if (p.neighborhoodId && p.neighborhoodId !== 0) {
             selected = allItems.find((item) => item.id === p.neighborhoodId);
@@ -296,8 +305,12 @@ const VolunteerProfileCard = () => {
           neighborhoodTitle: resolvedTitle,
           image: p.picUrl,
         });
-      } catch (err) {
-        console.error("Error loading profile:", err);
+      } catch (err: any) {
+        toaster.create({
+          title: "خطا",
+          description: err?.response?.data?.message || err?.message || "مشکلی در دریافت پروفایل پیش آمد",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -335,6 +348,13 @@ const VolunteerProfileCard = () => {
     try {
       setSaving(true);
 
+      if (profileFile) {
+        toaster.create({
+          title: "در حال آپلود عکس...",
+          type: "info",
+        });
+      }
+
       await updateProfile({
         firstName,
         lastName,
@@ -350,7 +370,6 @@ const VolunteerProfileCard = () => {
       if (res.isSuccess) {
         const p = res.value;
 
-        // اگر سرور همچنان در ریسپانس GET آی‌دی محله را 0 برگرداند، از آخرین آی‌دی معتبر ست‌شده در state استفاده می‌کنیم
         const savedNeighborhoodId =
           p.neighborhoodId && p.neighborhoodId !== 0
             ? p.neighborhoodId
@@ -371,9 +390,19 @@ const VolunteerProfileCard = () => {
 
         setProfileFile(null);
         setIsDirty(false);
+
+        toaster.create({
+          title: "موفق",
+          description: "اطلاعات با موفقیت ذخیره شد.",
+          type: "success",
+        });
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      toaster.create({
+        title: "خطا",
+        description: err?.response?.data?.message || err?.message || "مشکلی در ذخیره اطلاعات پیش آمد",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -384,6 +413,49 @@ const VolunteerProfileCard = () => {
       <Box textAlign="center" py="10">
         در حال دریافت اطلاعات...
       </Box>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <VStack
+        w="full"
+        gap="4"
+        dir="rtl"
+        align="center"
+        py="16"
+        px="6"
+        textAlign="center"
+      >
+        <Box
+          fontSize="5xl"
+          color="red.500"
+        >
+          ⛔
+        </Box>
+        <Text
+          fontSize="xl"
+          fontWeight="bold"
+          color="red.500"
+        >
+          دسترسی غیرمجاز
+        </Text>
+        <Text color="gray.600" maxW="md">
+         شما به این صفحه دسترسی ندارید
+        </Text>
+        <MainButton
+          text="بازگشت به صفحه اصلی"
+          onClick={() => {
+            window.location.href = "/";
+          }}
+          {...({
+            mt: "4",
+            bg: "gray.600",
+            w: "auto",
+            px: "8",
+          } as any)}
+        />
+      </VStack>
     );
   }
 
@@ -476,23 +548,27 @@ const VolunteerProfileCard = () => {
         </Text>
       </VStack>
 
-      <InputBox
-        label="نام"
-        placeholder=""
-        icon={IoTextOutline}
-        value={firstName}
-        onChange={setFirstName}
-        readOnly
-      />
+      <Box opacity={0.6} pointerEvents="none" w="full" bg="gray.50" borderRadius="md">
+        <InputBox
+          label="نام"
+          placeholder=""
+          icon={IoTextOutline}
+          value={firstName}
+          onChange={setFirstName}
+          readOnly
+        />
+      </Box>
 
-      <InputBox
-        label="نام خانوادگی"
-        placeholder=""
-        icon={HiOutlineIdentification}
-        value={lastName}
-        onChange={setLastName}
-        readOnly
-      />
+      <Box opacity={0.6} pointerEvents="none" w="full" bg="gray.50" borderRadius="md">
+        <InputBox
+          label="نام خانوادگی"
+          placeholder=""
+          icon={HiOutlineIdentification}
+          value={lastName}
+          onChange={setLastName}
+          readOnly
+        />
+      </Box>
 
       <Calendar
         label="تاریخ تولد"
@@ -564,7 +640,7 @@ const VolunteerProfileCard = () => {
 
       <InputBox
         label="شماره تلفن"
-        placeholder="شماره تلفن"
+        placeholder="شماره تلفن خود را وارد کنید"
         icon={HiOutlinePhone}
         value={phoneNumber}
         onChange={setPhoneNumber}

@@ -14,19 +14,29 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../../services/auth.service";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTaskFiltersStore } from "../../stores/taskFiltersStore";
+import { toaster } from "../../utils/toaster";
+import logo from "../../assets/images/logo.svg"
 
 const LoginCard = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const { loginUser } = useAuth();
   const navigate = useNavigate();
   const initFromProfile = useTaskFiltersStore((state) => state.initFromProfile);
   
   const handleLogin = async () => {
-    console.log("username:", username);
-    console.log("password:", password);
+    if (!username || !password) {
+      toaster.create({
+        title: "خطا",
+        description: "لطفا نام کاربری و رمز عبور را وارد کنید",
+        type: "warning",
+      });
+      return;
+    }
 
     try {
+      setLoading(true);
       const res = await login(username, password);
       loginUser(
         {
@@ -45,16 +55,29 @@ const LoginCard = () => {
       
       initFromProfile(res.value.skills ?? [], res.value.neighborhoodId ?? null);
       
+      toaster.create({
+        title: "ورود موفق",
+        description: "با موفقیت وارد شدید",
+        type: "success",
+      });
+
       navigate("/tasks");
-    } catch (err) {
+    } catch (err: any) {
       console.log("login error", err);
+      toaster.create({
+        title: "خطا در ورود",
+        description: err?.response?.data?.message || err?.message || "نام کاربری یا رمز عبور اشتباه است",
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <VStack gap="4" w="full" align="center" py="4">
       <Image
-        src="/src/assets/images/logo.svg"
+        src={logo}
         boxSize="200px"
         alignSelf="center"
         mb="-4"
@@ -91,8 +114,9 @@ const LoginCard = () => {
       />
 
       <MainButton
-        text="ورود"
+        text={loading ? "...در حال ورود" : "ورود"}
         onClick={handleLogin}
+        disabled={loading}
         {...({ mt: "4" } as any)}
       />
       <VStack w="full" align="center" gap="2" mt="2">

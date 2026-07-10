@@ -125,3 +125,12 @@ export interface SkillOption {
   key: number;
   value: string;
 }
+
+// ---- Volunteer confirmation for a task: GET /api/Tasks/{id}/volunteer-confirmations ----
+
+export interface TaskVolunteerConfirmation {
+  id: number;
+  volunteerName: string;
+  phoneNumber: string;
+  isConfirmed: boolean;
+}

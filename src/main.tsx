@@ -13,6 +13,7 @@ import TaskDetail from './pages/Tasks/TaskDetail'
 import VolunteerProfile from './pages/VolunteerProfile/VolunteerProfile'
 import MyTasks from './pages/MyTasks/MyTasks';
 import CoordinatorProfile from './pages/CoordinatorProfile/CoordinatorProfile'
+import CoordinatorTasks from './pages/CoordinatorTasks/CoordinatorTasks'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -28,10 +29,11 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/volunteerprofile" element={<VolunteerProfile />} />
           <Route path="/coordinatorprofile" element={<CoordinatorProfile />} />
           <Route path="/mytasks" element={<MyTasks />} />
+          <Route path="/coordinatortasks" element={<CoordinatorTasks />} />
         </Routes>
       </BrowserRouter> 
       </AuthProvider>
-      <Toaster />
+      <Toaster></Toaster>
     </ChakraProvider>
   </StrictMode>
 )
