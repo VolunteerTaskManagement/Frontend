@@ -40,8 +40,8 @@ export default function TabBar()
     <Box
       bg="white"
       borderWidth="1px"
-      px={6}
-      py={1.5}
+      px={7}
+      py={1}
       boxShadow="md"
       w="100%"
     >
@@ -55,9 +55,9 @@ export default function TabBar()
               onClick={() => navigate(tab.path)}
               cursor="pointer"
               textAlign="center"
-              px={8}
-              py={2}
-              borderRadius="12px"
+              px={7}
+              py={1.5}
+              borderRadius="10px"
               bg={ isActive ? "#ECFEFF" : "transparent" }
               transition="all .2s"
             >
