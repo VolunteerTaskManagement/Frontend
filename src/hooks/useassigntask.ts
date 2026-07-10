@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { assignTask } from '../services/taskService';
 import { useTaskStore } from '../stores/taskStore';
+import { extractErrorMessage } from '../utils/Extracterrormessage';
 
 interface ActionResult {
   success: boolean;
@@ -41,8 +42,8 @@ export function useAssignTask() {
         success: true,
         message: 'ثبت‌نام شما با موفقیت انجام شد.',
       };
-    } catch {
-      const message = 'ثبت‌نام با خطا مواجه شد.';
+    } catch (err) {
+      const message = extractErrorMessage(err, 'ثبت‌نام با خطا مواجه شد.');
       setError(message);
 
       return {

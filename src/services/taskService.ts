@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { ApiResponse, PaginatedResult, TaskDetail, TaskListItem, TaskQueryParams } from '../types/task';
+import type { ApiResponse, PaginatedResult, TaskDetail, TaskListItem, TaskQueryParams , TaskVolunteerConfirmation } from '../types/task';
 
 const buildTaskQueryString = (params: TaskQueryParams): string => {
   const parts: string[] = [];
@@ -76,3 +76,28 @@ export const completeTask = async (
   return res.data;
 };
  
+export const fetchTaskVolunteerConfirmations = async (
+  id: number
+): Promise<ApiResponse<TaskVolunteerConfirmation[]>> => {
+  const res = await api.get(`/Tasks/${id}/volunteer-confirmations`);
+
+  return res.data;
+};
+
+export const cancelTask = async (id: number): Promise<ApiResponse<null>> => {
+  const res = await api.delete(`/Tasks/${id}`);
+
+  return res.data;
+};
+
+export const confirmTaskCompletion = async (id: number): Promise<ApiResponse<null>> => {
+  const res = await api.post('/Tasks/confirm', { id });
+
+  return res.data;
+};
+
+export const startTask = async (id: number): Promise<ApiResponse<null>> => {
+  const res = await api.post('/Tasks/start', { id });
+
+  return res.data;
+};

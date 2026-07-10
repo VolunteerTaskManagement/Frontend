@@ -18,8 +18,6 @@ import type { MyTaskTab } from '../../stores/myTaskStore';
 import { toPersianDigits } from '../../utils/formatters';
 import { toaster } from '../../utils/toaster';
 
-
-
 interface MyTaskCardProps {
   task: TaskListItem;
   activeTab: MyTaskTab;
@@ -38,6 +36,10 @@ const MyTaskCard = ({ task, activeTab }: MyTaskCardProps) => {
 
   const isBusy = isCompleting || isUnassigning;
   const showActions = activeTab === 'active';
+  const isOpen = task.status === 1; // status 1: Open
+  const isAssigned = task.status === 2; // status 2: Assigned
+  const isWaitingForCoordinator = isAssigned && task.isConfirmedByVolunteer;
+  const isWaitingForStart = isOpen; // status 1: در انتظار شروع
 
   const handleConfirm = async () => {
     if (confirm.type === 'complete') {
@@ -198,35 +200,71 @@ const MyTaskCard = ({ task, activeTab }: MyTaskCardProps) => {
                   </Button>
                 </HStack>
               </Box>
-            ) : (
-              /* دکمه‌های اصلی */
-              <HStack gap="2">
+            ) : isWaitingForCoordinator ? (
+              /* حالت 3: status=2 و isConfirmedByVolunteer=true */
+              <Box
+                p="3"
+                borderRadius="12px"
+                bg={brandColors.primaryLight}
+                border="1px solid"
+                borderColor="#B3E8EA"
+              >
+                <HStack justify="center" gap="2" color={brandColors.primary}>
+                  <FiCheckCircle size={18} />
+                  <Text fontSize="sm" fontWeight="medium">
+                    تسک انجام شد، در انتظار تایید هماهنگ‌کننده
+                  </Text>
+                </HStack>
+              </Box>
+            ) : isWaitingForStart ? (
+              /* حالت 1: status=1 (Open) - فقط دکمه کناره‌گیری */
+              <Box>
                 <Button
-                  flex="1"
-                  size="sm"
-                  borderRadius="full"
-                  bg={brandColors.primary}
-                  color="white"
-                  _hover={{ bg: brandColors.primaryHover }}
-                  onClick={() => setConfirm({ type: 'complete' })}
-                >
-                  انجام شد
-                  {<FiCheckCircle size={14} />}
-                </Button>
-                <Button
-                  flex="1"
+                  width="full"
                   size="sm"
                   borderRadius="full"
                   variant="outline"
                   borderColor="red.300"
                   color="red.500"
-                  _hover={{ bg: 'red.50' }}
+                  _hover={{ 
+                    bg: 'red.50',
+                    borderColor: 'red.400'
+                  }}
                   onClick={() => setConfirm({ type: 'unassign' })}
                 >
-                  کناره‌گیری
                   {<FiXCircle size={14} />}
+                  کناره‌گیری از تسک
                 </Button>
-              </HStack>
+                <Box
+                  mt="2"
+                  p="2.5"
+                  borderRadius="12px"
+                  bg="gray.50"
+                  border="1px solid"
+                  borderColor="gray.200"
+                >
+                  <HStack justify="center" gap="2" color="gray.600">
+                    <FiClock size={16} />
+                    <Text fontSize="sm" fontWeight="medium">
+                      در انتظار شروع تسک توسط هماهنگ‌کننده
+                    </Text>
+                  </HStack>
+                </Box>
+              </Box>
+            ) : (
+              /* حالت 2: status=2 و isConfirmedByVolunteer=false - فقط دکمه انجام شد */
+              <Button
+                width="full"
+                size="sm"
+                borderRadius="full"
+                bg={brandColors.primary}
+                color="white"
+                _hover={{ bg: brandColors.primaryHover }}
+                onClick={() => setConfirm({ type: 'complete' })}
+              >
+                انجام شد
+                <FiCheckCircle size={14} />
+              </Button>
             )}
           </>
         )}

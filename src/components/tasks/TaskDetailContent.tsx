@@ -1,6 +1,6 @@
 import { Box, HStack, Image, Spinner, Text, VStack } from '@chakra-ui/react';
 import type { ReactNode } from 'react';
-import { FiArrowRight, FiClock, FiMapPin, FiUser } from 'react-icons/fi';
+import { FiArrowRight, FiClock, FiMapPin, FiPhone, FiUser } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MainButton from '../common/MainButton';
 import { useAuth } from '../../contexts/AuthContext';
@@ -129,7 +129,11 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
             fontSize="xs"
             fontWeight="medium"
           >
-            {toPersianDigits(task.count - task.volunteerCount)} جای خالی
+          {task.count - task.volunteerCount === 0 ? (
+            'ظرفیت تکمیل'
+          ) : (
+            `${toPersianDigits(task.count - task.volunteerCount)} جای خالی`
+          )}          
           </Box>
         )}
       </Box>
@@ -171,7 +175,7 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
       <VStack align="stretch" gap="4">
         <DetailRow icon={<FiClock size={18} />} label="زمان برگزاری" value={toPersianDigits(task.startDateFa)} />
         <DetailRow icon={<FiUser size={18} />} label="مسئول" value={task.coordinatorName} />
-        <DetailRow icon={<FiMapPin size={18} />} label="شماره تماس" value={toPersianDigits(task.mobile)} />
+        <DetailRow icon={<FiPhone size={18} />} label="شماره تماس"   value={task.mobile == null ? '-' : toPersianDigits(task.mobile)} />
         <DetailRow icon={<FiMapPin size={18} />} label="آدرس" value={toPersianDigits(task.address)} />
       </VStack>
 
