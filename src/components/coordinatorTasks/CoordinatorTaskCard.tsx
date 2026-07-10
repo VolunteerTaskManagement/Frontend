@@ -9,6 +9,7 @@ import {
   FiEdit2,
   FiMapPin,
   FiPhone,
+  FiPlayCircle,
   FiUser,
   FiUsers,
   FiXCircle,
@@ -16,9 +17,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useCancelTask } from '../../hooks/useCancelTask';
 import { useConfirmTaskCompletion } from '../../hooks/useConfirmTaskCompletion';
+import { useStartTask } from '../../hooks/usestarttask';
 import { useTaskVolunteers } from '../../hooks/useTaskVolunteers';
 import { useTaskImage } from '../../hooks/useTaskImage';
 import { brandColors } from '../../theme/tokens';
+import { TASK_STATUS } from '../../types/task';
 import type { TaskListItem } from '../../types/task';
 import type { CoordinatorTaskTab } from '../../stores/coordinatorTaskStore';
 import { toPersianDigits } from '../../utils/formatters';
@@ -39,6 +42,7 @@ const CoordinatorTaskCard = ({ task, activeTab, onRemove }: CoordinatorTaskCardP
   const { imageSrc } = useTaskImage(task.picUrl);
   const { cancel, isLoading: isCancelling } = useCancelTask();
   const { confirmCompletion, isLoading: isConfirming } = useConfirmTaskCompletion();
+  const { start, isLoading: isStarting } = useStartTask();
   const {
     volunteers,
     isLoading: isLoadingVolunteers,
@@ -49,9 +53,13 @@ const CoordinatorTaskCard = ({ task, activeTab, onRemove }: CoordinatorTaskCardP
   const [expanded, setExpanded] = useState(false);
   const [hasFetchedVolunteers, setHasFetchedVolunteers] = useState(false);
   const [confirm, setConfirm] = useState<ConfirmState>({ type: null });
+  // وضعیت تسک به‌صورت محلی نگه داشته می‌شود تا بعد از «شروع تسک» بدون رفرش کامل لیست،
+  // دکمه بلافاصله از «شروع تسک» به «پایان تسک» تغییر کند
+  const [status, setStatus] = useState(task.status);
 
-  const isBusy = isCancelling || isConfirming;
+  const isBusy = isCancelling || isConfirming || isStarting;
   const showActions = activeTab === 'open';
+  const isNotStarted = status === TASK_STATUS.Open;
 
   const toggleExpand = () => {
     const next = !expanded;
@@ -67,6 +75,20 @@ const CoordinatorTaskCard = ({ task, activeTab, onRemove }: CoordinatorTaskCardP
     e.stopPropagation();
     // صفحه‌ی ویرایش هنوز ساخته نشده — فقط مسیر وصل شده تا بعداً پیاده‌سازی شود
     navigate(`/tasks/edit/${task.id}`);
+  };
+
+  // شروع تسک نیازی به دیالوگ تایید ندارد؛ بلافاصله انجام می‌شود
+  const handleStart = async () => {
+    const result = await start(task.id);
+
+    toaster.create({
+      type: result.success ? 'success' : 'error',
+      title: result.success ? 'تسک شروع شد' : 'خطا',
+      description: result.message,
+      meta: { closable: true },
+    });
+
+    if (result.success) setStatus(TASK_STATUS.Assigned);
   };
 
   const handleConfirm = async () => {
@@ -308,18 +330,36 @@ const CoordinatorTaskCard = ({ task, activeTab, onRemove }: CoordinatorTaskCardP
               /* دکمه‌های اصلی */
               <VStack gap="2" align="stretch">
                 <HStack gap="2">
-                  <Button
-                    flex="1"
-                    size="sm"
-                    borderRadius="full"
-                    bg={brandColors.primary}
-                    color="white"
-                    _hover={{ bg: brandColors.primaryHover }}
-                    onClick={() => setConfirm({ type: 'complete' })}
-                  >
-                    پایان تسک
-                    {<FiCheckCircle size={14} />}
-                  </Button>
+                  {isNotStarted ? (
+                    <Button
+                      flex="1"
+                      size="sm"
+                      borderRadius="full"
+                      bg={brandColors.primary}
+                      color="white"
+                      _hover={{ bg: brandColors.primaryHover }}
+                      onClick={handleStart}
+                      disabled={isBusy}
+                      loading={isStarting}
+                    >
+                      شروع تسک
+                      {<FiPlayCircle size={14} />}
+                    </Button>
+                  ) : (
+                    <Button
+                      flex="1"
+                      size="sm"
+                      borderRadius="full"
+                      bg={brandColors.primary}
+                      color="white"
+                      _hover={{ bg: brandColors.primaryHover }}
+                      onClick={() => setConfirm({ type: 'complete' })}
+                      disabled={isBusy}
+                    >
+                      پایان تسک
+                      {<FiCheckCircle size={14} />}
+                    </Button>
+                  )}
                   <Button
                     flex="1"
                     size="sm"
@@ -329,6 +369,7 @@ const CoordinatorTaskCard = ({ task, activeTab, onRemove }: CoordinatorTaskCardP
                     color="red.500"
                     _hover={{ bg: 'red.50' }}
                     onClick={() => setConfirm({ type: 'cancel' })}
+                    disabled={isBusy}
                   >
                     لغو تسک
                     {<FiXCircle size={14} />}
@@ -342,6 +383,7 @@ const CoordinatorTaskCard = ({ task, activeTab, onRemove }: CoordinatorTaskCardP
                   color={brandColors.textSecondary}
                   _hover={{ bg: 'gray.50' }}
                   onClick={goToEdit}
+                  disabled={isBusy}
                 >
                   ویرایش اطلاعات
                   {<FiEdit2 size={14} />}

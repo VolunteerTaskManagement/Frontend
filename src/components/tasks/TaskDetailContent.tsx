@@ -171,7 +171,7 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
       <VStack align="stretch" gap="4">
         <DetailRow icon={<FiClock size={18} />} label="زمان برگزاری" value={toPersianDigits(task.startDateFa)} />
         <DetailRow icon={<FiUser size={18} />} label="مسئول" value={task.coordinatorName} />
-        <DetailRow icon={<FiMapPin size={18} />} label="شماره تماس" value={toPersianDigits(task.mobile)} />
+        <DetailRow icon={<FiMapPin size={18} />} label="شماره تماس"   value={task.mobile == null ? '-' : toPersianDigits(task.mobile)} />
         <DetailRow icon={<FiMapPin size={18} />} label="آدرس" value={toPersianDigits(task.address)} />
       </VStack>
 

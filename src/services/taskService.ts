@@ -95,3 +95,9 @@ export const confirmTaskCompletion = async (id: number): Promise<ApiResponse<nul
 
   return res.data;
 };
+
+export const startTask = async (id: number): Promise<ApiResponse<null>> => {
+  const res = await api.post('/Tasks/start', { id });
+
+  return res.data;
+};
