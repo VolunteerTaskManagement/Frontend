@@ -4,7 +4,7 @@ import "@neshan-maps-platform/mapbox-gl/dist/NeshanMapboxGl.css";
 import nmp_mapboxgl from "@neshan-maps-platform/mapbox-gl";
 import type {NeshanMapProps} from "../../types/map";
 
-const API_KEY = import.meta.env.VITE_NESHAN_API_KEY;
+const API_KEY = import.meta.env.VITE_NESHAN_MAP_API_KEY;
 
 export default function NeshanMap({value, onChange, zoom=10, editable=false}: NeshanMapProps)
 {
