@@ -6,14 +6,14 @@ import { appSystem } from './theme/system'
 import { AuthProvider } from './contexts/AuthContext'
 import { Toaster } from './utils/toaster'
 import './index.css'
-import Login from './pages/Login/Login'
-import SignUp from './pages/SignUp/Signup'
+import Login from './pages/Auth/Login'
+import SignUp from './pages/Auth/Signup'
 import Tasks from './pages/Tasks/Tasks'
 import TaskDetail from './pages/Tasks/TaskDetail'
-import VolunteerProfile from './pages/VolunteerProfile/VolunteerProfile'
-import MyTasks from './pages/MyTasks/MyTasks';
-import CoordinatorProfile from './pages/CoordinatorProfile/CoordinatorProfile'
-import CoordinatorTasks from './pages/CoordinatorTasks/CoordinatorTasks'
+import VolunteerProfile from './pages/Profile/VolunteerProfile'
+import VolunteerTasks from './pages/MyTasks/VolunteerTasks';
+import CoordinatorProfile from './pages/Profile/CoordinatorProfile'
+import CoordinatorTasks from './pages/MyTasks/CoordinatorTasks'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -28,7 +28,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/tasks/:taskId" element={<TaskDetail />} />
           <Route path="/volunteerprofile" element={<VolunteerProfile />} />
           <Route path="/coordinatorprofile" element={<CoordinatorProfile />} />
-          <Route path="/mytasks" element={<MyTasks />} />
+          <Route path="/mytasks" element={<VolunteerTasks />} />
           <Route path="/coordinatortasks" element={<CoordinatorTasks />} />
         </Routes>
       </BrowserRouter> 
