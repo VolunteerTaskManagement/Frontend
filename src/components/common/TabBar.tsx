@@ -18,13 +18,13 @@ const tabs: TabItem[] = [
     path: "/profile",
   },
   {
-    id: "tasks",
+    id: "myTasks",
     label: "وظایف من",
     icon: LuVote,
-    path: "/mytasks",
+    path: "/myTasks",
   },
   {
-    id: "ads",
+    id: "tasks",
     label: "آگهی ها",
     icon: LuNotepadText,
     path: "/tasks",

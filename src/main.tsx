@@ -10,10 +10,8 @@ import Login from './pages/Auth/Login'
 import SignUp from './pages/Auth/Signup'
 import Tasks from './pages/Tasks/Tasks'
 import TaskDetail from './pages/Tasks/TaskDetail'
-import VolunteerProfile from './pages/Profile/VolunteerProfile'
-import VolunteerTasks from './pages/MyTasks/VolunteerTasks';
-import CoordinatorProfile from './pages/Profile/CoordinatorProfile'
-import CoordinatorTasks from './pages/MyTasks/CoordinatorTasks'
+import ProfilePage from './pages/Profile/ProfilePage'
+import MyTasksPage from './pages/MyTasks/MyTasksPage'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -26,14 +24,12 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/signup" element={<SignUp />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/tasks/:taskId" element={<TaskDetail />} />
-          <Route path="/volunteerprofile" element={<VolunteerProfile />} />
-          <Route path="/coordinatorprofile" element={<CoordinatorProfile />} />
-          <Route path="/mytasks" element={<VolunteerTasks />} />
-          <Route path="/coordinatortasks" element={<CoordinatorTasks />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/myTasks" element={<MyTasksPage />} />
         </Routes>
       </BrowserRouter> 
       </AuthProvider>
-      <Toaster></Toaster>
+      <Toaster />
     </ChakraProvider>
   </StrictMode>
 )
