@@ -23,6 +23,7 @@ import InputBox from "../common/Inputbox";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import { createTask } from "../../services/createTaskService";
+import { ReverseGeocode } from "../../services/reverseGeocodingService";
 import NeshanMap from "../common/Map";
 import type { MapLocation } from "../../types/map";
 
@@ -369,9 +370,16 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     editable
                     zoom={zoom}
                     value={location}
-                    onChange={(loc) => {
+                    onChange={async (loc) => {
                       setLocation(loc);
                       setZoom(15);
+                      try {
+                        const result = await ReverseGeocode(loc.lat, loc.lng);
+                        setAddress(result.formatted_address);
+                      }
+                      catch (err) {
+                        console.error(err);
+                      }
                     }}
                   />
                 </Box>
