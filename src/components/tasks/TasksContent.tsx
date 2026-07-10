@@ -10,6 +10,7 @@ import TaskFilterBar from './TaskFilterBar';
 import TaskList from './TaskList';
 import TaskResultsBar from './TaskResultsBar';
 import TaskSearchBar from './TaskSearchBar';
+import { useAuth } from '../../contexts/AuthContext'; // مسیر رو بر اساس پروژه ات تنظیم کن
 
 const TasksContent = () => {
   const { tasks, isLoading, isLoadingMore, hasNextPage, filteredCount, error, loadMore } =
@@ -27,6 +28,9 @@ const TasksContent = () => {
     hasActiveFilters,
   } = useTaskFilters();
 
+  const { user } = useAuth();
+  const isVolunteer = user?.role === 'Volunteer'; 
+
   const skillOptions: FilterOption[] = useMemo(
     () => skills.map((skill) => ({ value: String(skill.key), label: skill.value })),
     [skills],
@@ -39,7 +43,7 @@ const TasksContent = () => {
 
   return (
     <VStack align="stretch" gap="4" dir="rtl" w="full">
-      <ProfileMatchBanner />
+      {isVolunteer && <ProfileMatchBanner />}
 
       <TaskSearchBar value={filters.search} onChange={setSearch} />
 
