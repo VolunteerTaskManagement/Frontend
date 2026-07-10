@@ -129,7 +129,11 @@ const TaskDetailContent = ({ taskId }: TaskDetailContentProps) => {
             fontSize="xs"
             fontWeight="medium"
           >
-            {toPersianDigits(task.count - task.volunteerCount)} جای خالی
+          {task.count - task.volunteerCount === 0 ? (
+            'ظرفیت تکمیل'
+          ) : (
+            `${toPersianDigits(task.count - task.volunteerCount)} جای خالی`
+          )}          
           </Box>
         )}
       </Box>
