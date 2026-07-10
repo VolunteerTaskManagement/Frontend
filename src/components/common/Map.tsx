@@ -8,8 +8,8 @@ const API_KEY = import.meta.env.VITE_NESHAN_MAP_API_KEY;
 
 export default function NeshanMap({value, onChange, zoom=10, editable=false}: NeshanMapProps)
 {
-  const mapRef = useRef<nmp_mapboxgl.Map | null>(null);
-  const markerRef = useRef<nmp_mapboxgl.Marker | null>(null);
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
 
   // Everytime value has changed from parent:
   useEffect(() => {
@@ -46,8 +46,8 @@ export default function NeshanMap({value, onChange, zoom=10, editable=false}: Ne
         maxZoom: 16,
         poi: true,
         mapTypeControllerOptions: {show: false},
-      }}
-      mapSetter={(map) => {
+      } as any}
+      mapSetter={(map: any) => {
         mapRef.current = map;
         map.addControl(
           new nmp_mapboxgl.NavigationControl({showCompass: false}),
@@ -64,7 +64,7 @@ export default function NeshanMap({value, onChange, zoom=10, editable=false}: Ne
 				// If the Marker is not editable
         if (!editable) return;
 
-        map.on("click", (e) => {
+        map.on("click", (e: any) => {
           const location = {
             lat: e.lngLat.lat,
             lng: e.lngLat.lng,
