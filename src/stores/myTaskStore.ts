@@ -7,13 +7,13 @@ const PAGE_SIZE = 10;
 export type MyTaskTab = 'active' | 'completed' | 'cancelled';
 
 export const TAB_STATUS_MAP: Record<MyTaskTab, number[]> = {
-  active: [2],
+  active: [1,2],
   completed: [3],
   cancelled: [4],
 };
 
 export const TAB_LABELS: Record<MyTaskTab, string> = {
-  active: 'در حال انجام',
+  active: 'باز',
   completed: 'انجام شده',
   cancelled: 'لغو شده',
 };
