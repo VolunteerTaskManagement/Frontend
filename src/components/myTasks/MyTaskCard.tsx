@@ -18,8 +18,6 @@ import type { MyTaskTab } from '../../stores/myTaskStore';
 import { toPersianDigits } from '../../utils/formatters';
 import { toaster } from '../../utils/toaster';
 
-
-
 interface MyTaskCardProps {
   task: TaskListItem;
   activeTab: MyTaskTab;
@@ -38,6 +36,9 @@ const MyTaskCard = ({ task, activeTab }: MyTaskCardProps) => {
 
   const isBusy = isCompleting || isUnassigning;
   const showActions = activeTab === 'active';
+  // کناره‌گیری فقط در status 1 (Open) مجاز است، نه status 2 (Assigned)
+  const canUnassign = task.status === 1;
+  const isWaitingForCoordinator = task.status === 2 && task.isConfirmedByVolunteer;
 
   const handleConfirm = async () => {
     if (confirm.type === 'complete') {
@@ -198,6 +199,21 @@ const MyTaskCard = ({ task, activeTab }: MyTaskCardProps) => {
                   </Button>
                 </HStack>
               </Box>
+            ) : isWaitingForCoordinator ? (
+              <Box
+                p="3"
+                borderRadius="12px"
+                bg={brandColors.primaryLight}
+                border="1px solid"
+                borderColor="#B3E8EA"
+              >
+                <HStack justify="center" gap="2" color={brandColors.primary}>
+                  <FiCheckCircle size={18} />
+                  <Text fontSize="sm" fontWeight="medium">
+                    تسک انجام شد، در انتظار تایید هماهنگ‌کننده
+                  </Text>
+                </HStack>
+              </Box>
             ) : (
               /* دکمه‌های اصلی */
               <HStack gap="2">
@@ -211,21 +227,24 @@ const MyTaskCard = ({ task, activeTab }: MyTaskCardProps) => {
                   onClick={() => setConfirm({ type: 'complete' })}
                 >
                   انجام شد
-                  {<FiCheckCircle size={14} />}
+                  <FiCheckCircle size={14} />
                 </Button>
-                <Button
-                  flex="1"
-                  size="sm"
-                  borderRadius="full"
-                  variant="outline"
-                  borderColor="red.300"
-                  color="red.500"
-                  _hover={{ bg: 'red.50' }}
-                  onClick={() => setConfirm({ type: 'unassign' })}
-                >
-                  کناره‌گیری
-                  {<FiXCircle size={14} />}
-                </Button>
+
+                {canUnassign && (
+                  <Button
+                    flex="1"
+                    size="sm"
+                    borderRadius="full"
+                    variant="outline"
+                    borderColor="red.300"
+                    color="red.500"
+                    _hover={{ bg: 'red.50' }}
+                    onClick={() => setConfirm({ type: 'unassign' })}
+                  >
+                    کناره‌گیری
+                    <FiXCircle size={14} />
+                  </Button>
+                )}
               </HStack>
             )}
           </>

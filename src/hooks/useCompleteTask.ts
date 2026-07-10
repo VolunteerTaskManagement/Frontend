@@ -12,7 +12,7 @@ export function useCompleteTask() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const removeTask = useMyTaskStore((state) => state.removeTask);
+  const updateTaskConfirmation = useMyTaskStore((state) => state.updateTaskConfirmation);
 
   const complete = async (taskId: number): Promise<ActionResult> => {
     setIsLoading(true);
@@ -31,7 +31,7 @@ export function useCompleteTask() {
         };
       }
 
-      removeTask(taskId);
+      updateTaskConfirmation(taskId);
 
       return {
         success: true,

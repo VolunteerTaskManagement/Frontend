@@ -38,6 +38,7 @@ interface MyTaskState {
   fetchMyTasks: () => Promise<void>;
   fetchNextPage: () => Promise<void>;
   removeTask: (id: number) => void;
+  updateTaskConfirmation: (id: number) => void; // متد جدید
 }
 
 export const useMyTaskStore = create<MyTaskState>((set, get) => ({
@@ -106,4 +107,13 @@ export const useMyTaskStore = create<MyTaskState>((set, get) => ({
 
   removeTask: (id) =>
     set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) })),
+
+  updateTaskConfirmation: (id) =>
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === id
+          ? { ...task, isConfirmedByVolunteer: true }
+          : task
+      ),
+    })),
 }));
