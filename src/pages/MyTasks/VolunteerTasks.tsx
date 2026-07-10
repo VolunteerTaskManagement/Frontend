@@ -1,7 +1,7 @@
 import MyTasksContent from '../../components/myTasks/MyTasksContent';
 import TabBarLayout from '../../layouts/TabBarLayout';
 
-const MyTasks = () => {
+const VolunteerTasks = () => {
   return (
     <TabBarLayout>
       <MyTasksContent />
@@ -9,4 +9,4 @@ const MyTasks = () => {
   );
 };
 
-export default MyTasks;
+export default VolunteerTasks;
