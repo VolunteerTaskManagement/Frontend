@@ -26,7 +26,7 @@ const FilterTrigger = ({
     <Button
       w="full"
       h="44px"
-      px="3"
+      px="1"
       borderRadius="full"
       border="1px solid"
       borderColor={isOpen ? accent : brandColors.border}
@@ -38,9 +38,9 @@ const FilterTrigger = ({
       _hover={{ bg: isOpen ? accent : 'gray.50' }}
     >
       <HStack w="full" justify="space-between" gap="1">
-        {isOpen ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />}
+        {isOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
 
-        <HStack gap="1.5" flex="1" justify="center" minW="0">
+        <HStack gap="1" flex="1" justify="center" minW="0">
           <Text lineClamp={1}>{label}</Text>
           {selectedCount > 0 && (
             <Box
@@ -66,7 +66,7 @@ const FilterTrigger = ({
               {selectedCount}
             </Box>
           )}
-          <Icon size={16} />
+          <Icon size={14} />
         </HStack>
       </HStack>
     </Button>
