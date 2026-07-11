@@ -34,14 +34,15 @@ export const fetchTaskById = async (
   return res.data;
 };
 
-export const fetchTaskImage = async (fileUrl: string): Promise<Blob> => {
+export const fetchTaskImage = async (fileUrl: string, signal?: AbortSignal): Promise<Blob> => {
   const res = await api.get("/MediaFiles/StramImg", {
     params: { FileUrl: fileUrl },
     responseType: "blob",
+    signal,
   });
-
   return res.data;
 };
+ 
 
 export const assignTask = async (
   id: number
