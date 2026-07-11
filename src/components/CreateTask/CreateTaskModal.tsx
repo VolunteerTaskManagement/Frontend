@@ -310,6 +310,52 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   </Box>
                 </Field.Root>
 
+                {/* Neighborhood */}
+                <Dropdown
+                  label="محله"
+                  placeholder="محله خود را انتخاب کنید"
+                  options={neighborhoodOptions}
+                  value={neighborhood}
+                  onChange={setNeighborhood}
+                  onSearch={handleNeighborhoodSearch}
+                />
+
+                {/* Map */}
+                <Box w="full" px="16px">
+                  <Text
+                    mb="2"
+                    pr="1"
+                    fontWeight="bold"
+                    textAlign="right"
+                  >
+                    موقعیت روی نقشه
+                  </Text>
+                  <NeshanMap
+                    editable
+                    zoom={zoom}
+                    value={location}
+                    onChange={async (loc) => {
+                      setLocation(loc);
+                      setZoom(15);
+                      try {
+                        const result = await ReverseGeocode(loc.lat, loc.lng);
+                        setAddress(result.formatted_address);
+                      }
+                      catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                  />
+                </Box>
+
+                {/* Address */}
+                <InputBox
+                  label="آدرس"
+                  placeholder="آدرس کامل را وارد کنید"
+                  value={address}
+                  onChange={setAddress}
+                />
+
                 {/* Skills */}
                 <Dropdown
                   label="مهارت ها"
@@ -347,52 +393,6 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     ))}
                   </Wrap>
                 )}
-
-                {/* Neighborhood */}
-                <Dropdown
-                  label="محله"
-                  placeholder="محله خود را انتخاب کنید"
-                  options={neighborhoodOptions}
-                  value={neighborhood}
-                  onChange={setNeighborhood}
-                  onSearch={handleNeighborhoodSearch}
-                />
-
-                {/* Map */}
-                <Box w="full" px="16px">
-                  {/* <Text
-                    mb="2"
-                    pr="2"
-                    fontWeight="bold"
-                    textAlign="right"
-                  >
-                    موقعیت روی نقشه
-                  </Text> */}
-                  <NeshanMap
-                    editable
-                    zoom={zoom}
-                    value={location}
-                    onChange={async (loc) => {
-                      setLocation(loc);
-                      setZoom(15);
-                      try {
-                        const result = await ReverseGeocode(loc.lat, loc.lng);
-                        setAddress(result.formatted_address);
-                      }
-                      catch (err) {
-                        console.error(err);
-                      }
-                    }}
-                  />
-                </Box>
-
-                {/* Address */}
-                <InputBox
-                  label="آدرس"
-                  placeholder="آدرس کامل را وارد کنید"
-                  value={address}
-                  onChange={setAddress}
-                />
 
                 {/* Count */}
                 <Box w="full" px="16px">
