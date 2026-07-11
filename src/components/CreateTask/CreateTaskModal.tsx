@@ -233,6 +233,10 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   <FileUpload.Root
                     alignItems="stretch"
                     maxFiles={1}
+                    maxFileSize={2 * 1024 * 1024}
+                    onFileReject={() => {
+                      alert("حجم فایل نباید بیشتر از ۲ مگابایت باشد.");
+                    }}
                     accept={["image/png", "image/jpeg"]}
                     onFileAccept={(details) => {
                       const file = details.files[0];
