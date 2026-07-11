@@ -187,11 +187,12 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
       }}
     >
       <Portal>
-        <Dialog.Backdrop bg="blackAlpha.500" />
+        <Dialog.Backdrop bg="blackAlpha.600" />
 
         <Dialog.Positioner>
           <Dialog.Content
-            maxW="430px"
+            w="95%"
+            maxW="390px"
             borderRadius="24px"
             dir="rtl"
           >
@@ -202,7 +203,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
             >
               <Dialog.Title
                 color="teal.600"
-                fontSize="2xl"
+                fontSize="20px"
                 fontWeight="bold"
               >
                 افزودن فعالیت جدید
@@ -221,8 +222,8 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
               </Dialog.CloseTrigger>
             </Dialog.Header>
 
-            <Dialog.Body pb="6">
-              <VStack gap="6">
+            <Dialog.Body>
+              <VStack gap="4">
                 {/* Upload */}
                 <Box w="full" px="16px">
                   <Text mb="2" fontWeight="bold" textAlign="right" pr="8px">
@@ -241,6 +242,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   >
                     <FileUpload.HiddenInput />
                     <FileUpload.Dropzone
+                      minH="200px"
                       border="2px dashed"
                       borderColor="gray.200"
                       borderRadius="12px"
@@ -251,7 +253,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                         bg: "gray.50",
                       }}
                     >
-                      <VStack gap="3">
+                      <VStack gap="2">
                         <Box bg="teal.50" p="4" borderRadius="full">
                           <Icon as={FiUpload} boxSize={7} color="teal.600" />
                         </Box>
@@ -260,8 +262,8 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                           برای آپلود عکس کلیک کنید
                         </Text>
 
-                        <Text fontSize="sm" color="gray.500" >
-                          JPG, PNG فرمت قابل پذیرش
+                        <Text fontSize="xs" color="gray.500" >
+                          JPG, PNG حداکثر ۲ مگابایت با فرمت
                         </Text>
                       </VStack>
                     </FileUpload.Dropzone>
@@ -292,12 +294,11 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                       placeholder="توضیحات کامل فعالیت را بنویسید..."
                       dir="rtl"
                       textAlign="right"
-                      minH="85px"
+                      minH="75px"
                       resize="none"
                       borderColor="gray.200"
                       borderRadius="8px"
-                      px="8px"
-                      py="10px"
+                      p="8px"
                       _placeholder={{
                         color: "gray.400",
                       }}
@@ -325,11 +326,12 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                           display="flex"
                           alignItems="center"
                           gap="1"
-                          px="3"
+                          pr="2"
+                          pl="3"
                           py="1.5"
                           bg="teal.50"
                           color="teal.600"
-                          borderRadius="8px"
+                          borderRadius="10px"
                           fontSize="sm"
                           cursor="pointer"
                           transition="0.2s"
@@ -412,7 +414,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
               </VStack>
             </Dialog.Body>
 
-            <Dialog.Footer flexDir="column" gap="3" px="10" pb="8" pt="4">
+            <Dialog.Footer flexDir="column" gap="3" px="10">
               <Button
                 w="full"
                 size="lg"
