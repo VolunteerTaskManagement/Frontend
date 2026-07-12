@@ -86,7 +86,7 @@ export const fetchTaskVolunteerConfirmations = async (
 };
 
 export const cancelTask = async (id: number): Promise<ApiResponse<null>> => {
-  const res = await api.delete(`/Tasks/${id}`);
+  const res = await api.post('/Tasks/cancel', { id });
 
   return res.data;
 };
