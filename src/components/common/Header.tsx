@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { LuBell, LuUserRoundX } from "react-icons/lu";
 import { getProfile } from "../../services/profileService";
 import type { ProfileResponse } from "../../types/profile";
+import { useAuth } from "../../contexts/AuthContext";
 
 
 const Header = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<ProfileResponse["value"] | null>(null);
   const avatarUrl = profile?.picUrl
@@ -15,8 +17,9 @@ const Header = () => {
   : undefined;
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+    setOpen(false);
+    logout();
+    navigate("/login", { replace: true });
   };
 
   useEffect(() => {
