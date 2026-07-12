@@ -18,8 +18,10 @@ import {
 import { FiUpload } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
 import { useState, useEffect, useCallback } from "react";
+import { toGregorian } from "jalaali-js";
 import Dropdown from "../common/Dropdown";
 import InputBox from "../common/Inputbox";
+import Calendar from "../VolunteerProfile/Calender";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import { createTask } from "../../services/createTaskService";
@@ -37,6 +39,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
 {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [address, setAddress] = useState("");
   const [skillIds, setSkillIds] = useState<number[]>([]);
@@ -58,6 +61,10 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
         alert("موقعیت را روی نقشه انتخاب کنید.")
         return;
       }
+      if (!startDate) {
+        alert("تاریخ شروع فعالیت را انتخاب کنید");
+        return;
+      }
 
       await createTask({
         pic: image,
@@ -65,7 +72,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
         description,
         neighborhoodId: Number(neighborhood),
         address,
-        startDate: new Date().toISOString(),
+        startDate: calendarToIso(startDate),
         count: Number(peopleCount),
         skills: skillIds,
         lat: location.lat,
@@ -79,6 +86,13 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
     }
   };
 
+  const calendarToIso = (date: string) => {
+    if (!date) return "";
+    const [jy, jm, jd] = date.split("/").map(Number);
+    const { gy, gm, gd } = toGregorian(jy, jm, jd);
+    return new Date(gy, gm - 1, gd).toISOString();
+  };
+
   const handleClose = () => {
     resetForm();
     onClose();
@@ -87,6 +101,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
   const resetForm = () => {
     setTitle("");
     setDescription("");
+    setStartDate("");
     setNeighborhood("");
     setAddress("");
     setSkillIds([]);
@@ -313,6 +328,14 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     />
                   </Box>
                 </Field.Root>
+
+                {/* Start Date */}
+                <Calendar
+                  futureOnly
+                  label="زمان شروع"
+                  value={startDate}
+                  onChange={setStartDate}
+                />
 
                 {/* Neighborhood */}
                 <Dropdown

@@ -6,10 +6,13 @@ interface Props {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  futureOnly?: boolean;
 }
 
-const Calendar = ({ label, value, onChange }: Props) => {
-  const years = Array.from({ length: 60 }, (_, i) => 1405 - i);
+const Calendar = ({ label, value, onChange, futureOnly=false }: Props) => {
+  const years = futureOnly
+  ? Array.from({ length: 10 }, (_, i) => 1405 + i)
+  : Array.from({ length: 60 }, (_, i) => 1405 - i);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   const [yStr = "", mStr = "", dStr = ""] = value.split("/");
