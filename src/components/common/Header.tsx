@@ -10,6 +10,9 @@ const Header = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<ProfileResponse["value"] | null>(null);
+  const avatarUrl = profile?.picUrl
+  ? `http://89.42.199.196:5213/api/MediaFiles/StramImg?FileUrl=${encodeURIComponent(profile.picUrl)}`
+  : undefined;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -46,7 +49,7 @@ const Header = () => {
             cursor="pointer"
             onClick={() => setOpen(!open)}
           >
-            <Avatar.Image src={profile?.picUrl} />
+            <Avatar.Image src={avatarUrl} />
             <Avatar.Fallback
               name={`${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`}
             />
