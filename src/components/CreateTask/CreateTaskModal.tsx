@@ -22,6 +22,7 @@ import Dropdown from "../common/Dropdown";
 import InputBox from "../common/Inputbox";
 import Calendar from "../VolunteerProfile/Calender";
 import NeshanMap from "../common/Map";
+import { toaster } from "../../utils/toaster";
 import { toEnglishDigits, toPersianDigits } from "../../utils/formatters";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
@@ -52,21 +53,88 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
   const [zoom, setZoom] = useState(10);
 
   const handleSubmit = async () => {
-    try {
-      if (!image) {
-        alert("عکس فعالیت را انتخاب کنید");
-        return;
-      }
-      if (!location) {
-        alert("موقعیت را روی نقشه انتخاب کنید.")
-        return;
-      }
-      if (!startDate) {
-        alert("تاریخ شروع فعالیت را انتخاب کنید");
-        return;
-      }
+    if (!image) {
+      toaster.create({
+        type: "warning",
+        title: "عکس فعالیت را انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!title.trim()) {
+      toaster.create({
+        type: "warning",
+        title: "عنوان فعالیت را وارد کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!description.trim()) {
+      toaster.create({
+        type: "warning",
+        title: "توضیحات فعالیت را وارد کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    const [year, month, day] = startDate.split("/");
+    if (!year || !month || !day) {
+      toaster.create({
+        type: "warning",
+        title: "تاریخ شروع فعالیت را به طور کامل انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!neighborhood) {
+      toaster.create({
+        type: "warning",
+        title: "محله را انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!location) {
+      toaster.create({
+        type: "warning",
+        title: "موقعیت فعالیت را روی نقشه انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!address.trim()) {
+      toaster.create({
+        type: "warning",
+        title: "آدرس را وارد کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (skillIds.length === 0) {
+      toaster.create({
+        type: "warning",
+        title: "حداقل یک مهارت انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (Number(toEnglishDigits(peopleCount)) < 1) {
+      toaster.create({
+        type: "warning",
+        title: "تعداد افراد باید حداقل ۱ نفر باشد.",
+        meta: { closable: true },
+      });
+      return;
+    }
 
-      await createTask({
+    try {
+      toaster.create({
+        id: "create-task",
+        type: "loading",
+        title: "در حال ایجاد فعالیت...",
+      });
+
+      const response = await createTask({
         pic: image,
         title,
         description,
@@ -79,10 +147,31 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
         lng: location.lng,
       });
 
-      handleClose();
+      toaster.dismiss("create-task");
+      if (response.isSuccess) {
+        toaster.create({
+          type: "success",
+          title: "موفق",
+          description: "فعالیت با موفقیت ایجاد شد"
+        });
+        setTimeout(() => {handleClose()}, 700);
+      }
+      else {
+        toaster.create({
+          type: "error",
+          title: "خطا",
+          description: response.message,
+        });
+      }
     }
     catch (err) {
-      console.log(err);
+      console.error(err);
+      toaster.dismiss("create-task");
+      toaster.create({
+        type: "error",
+        title: "خطا",
+        description: err,
+      });
     }
   };
 
@@ -250,7 +339,12 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     maxFiles={1}
                     maxFileSize={2 * 1024 * 1024}
                     onFileReject={() => {
-                      alert("حجم فایل نباید بیشتر از ۲ مگابایت باشد.");
+                      toaster.create({
+                        type: "warning",
+                        title: "فایل وارد شده قابل پذیرش نیست.",
+                        description: "حداکثر حجم فایل ۲ مگابایت است.\nفرمت مورد پذیرش JPG و PNG میباشد.",
+                        meta: { closable: true },
+                      });
                     }}
                     accept={["image/png", "image/jpeg"]}
                     onFileAccept={(details) => {
