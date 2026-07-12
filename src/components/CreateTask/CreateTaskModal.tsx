@@ -167,13 +167,13 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
         });
       }
     }
-    catch (err) {
+    catch (err: any) {
       console.error(err);
       toaster.dismiss("create-task");
       toaster.create({
         type: "error",
         title: "خطا",
-        description: err,
+        description: err.response?.data?.message ?? "خطایی رخ داد.",
       });
     }
   };
