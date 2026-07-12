@@ -90,7 +90,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
     if (!date) return "";
     const [jy, jm, jd] = date.split("/").map(Number);
     const { gy, gm, gd } = toGregorian(jy, jm, jd);
-    return new Date(gy, gm - 1, gd).toISOString();
+    return new Date(gy, gm - 1, gd, 12).toISOString();
   };
 
   const handleClose = () => {
