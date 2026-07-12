@@ -10,9 +10,22 @@ interface Props {
 }
 
 const Calendar = ({ label, value, onChange, futureOnly=false }: Props) => {
+  const toEnglishDigits = (value: string) =>
+    value.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
+  
+  const formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  });
+  const parts = formatter.formatToParts(new Date());
+  const currentYear = Number(toEnglishDigits(parts.find(p => p.type === "year")!.value));
+  const currentMonth = Number(toEnglishDigits(parts.find(p => p.type === "month")!.value));
+  const currentDay = Number(toEnglishDigits(parts.find(p => p.type === "day")!.value));
+
   const years = futureOnly
-  ? Array.from({ length: 10 }, (_, i) => 1405 + i)
-  : Array.from({ length: 60 }, (_, i) => 1405 - i);
+    ? Array.from({ length: 10 }, (_, i) => currentYear + i)
+    : Array.from({ length: 60 }, (_, i) => currentYear - 18 - i);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   const [yStr = "", mStr = "", dStr = ""] = value.split("/");
@@ -28,12 +41,21 @@ const Calendar = ({ label, value, onChange, futureOnly=false }: Props) => {
     onChange(`${newYear}/${newMonth}/${newDay}`);
   };
 
-  const dayOptions = days.map((d) => ({
-    label: String(d),
+  const faNumber = new Intl.NumberFormat("fa-IR", { useGrouping: false });
+
+  const dayOptions = days.filter((d) => {
+    if (!futureOnly) return true;
+    if (!year || !month) return true;
+    if (Number(year) > currentYear) return true;
+    if (Number(month) > currentMonth) return true;
+    return d >= currentDay;
+  })
+  .map((d) => ({
+    label: faNumber.format(d),
     value: String(d),
   }));
 
-  const monthOptions = [
+  const allMonths = [
     { label: "فروردین", value: "1" },
     { label: "اردیبهشت", value: "2" },
     { label: "خرداد", value: "3" },
@@ -47,9 +69,15 @@ const Calendar = ({ label, value, onChange, futureOnly=false }: Props) => {
     { label: "بهمن", value: "11" },
     { label: "اسفند", value: "12" },
   ];
+  const monthOptions = allMonths.filter((m) => {
+    if (!futureOnly) return true;
+    if (!year) return true;
+    if (Number(year) > currentYear) return true;
+    return Number(m.value) >= currentMonth;
+  });
 
   const yearOptions = years.map((y) => ({
-    label: String(y),
+    label: faNumber.format(y),
     value: String(y),
   }));
 
