@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Box } from "@chakra-ui/react";
 import TabBar from "../components/common/TabBar";
+import Header from "../components/common/Header";
 
 type Props = {
   children: ReactNode;
@@ -21,6 +22,7 @@ const TabBarLayout = ({ children }: Props) => {
         position="relative"
         w="100%"
         maxW="430px"
+        h={{ base: "100dvh", sm: "calc(100dvh - 45px)" }}
         bg="white"
         borderRadius={{ base: "0", sm: "24px" }}
         boxShadow={{
@@ -29,7 +31,11 @@ const TabBarLayout = ({ children }: Props) => {
         }}
         overflow="hidden"
       >
+        <Header />
+
         <Box
+          h="100%"
+          overflowY="auto"
           px="24px"
           pt="24px"
           pb="80px"
