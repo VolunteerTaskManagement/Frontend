@@ -2,6 +2,7 @@ import { Box, Button, HStack, Text } from '@chakra-ui/react';
 import type { IconType } from 'react-icons';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { brandColors } from '../../theme/tokens';
+import { toPersianDigits } from '../../utils/formatters';
 
 interface FilterTriggerProps {
   label: string;
@@ -63,7 +64,7 @@ const FilterTrigger = ({
               }
               color={isOpen ? 'white' : accent}
             >
-              {selectedCount}
+              {toPersianDigits(selectedCount)}
             </Box>
           )}
           <Icon size={14} />
