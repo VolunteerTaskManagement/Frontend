@@ -22,6 +22,7 @@ import Dropdown from "../common/Dropdown";
 import InputBox from "../common/Inputbox";
 import Calendar from "../VolunteerProfile/Calender";
 import NeshanMap from "../common/Map";
+import { toEnglishDigits, toPersianDigits } from "../../utils/formatters";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import { createTask } from "../../services/createTaskService";
@@ -72,7 +73,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
         neighborhoodId: Number(neighborhood),
         address,
         startDate: calendarToIso(startDate),
-        count: Number(peopleCount),
+        count: Number(toEnglishDigits(peopleCount)),
         skills: skillIds,
         lat: location.lat,
         lng: location.lng,
@@ -293,7 +294,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                 <InputBox
                   label="عنوان فعالیت"
                   placeholder="عنوان فعالیت را وارد کنید"
-                  value={title}
+                  value={toPersianDigits(title)}
                   onChange={setTitle}
                 />
 
@@ -307,7 +308,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
 
                   <Box w="full">
                     <Textarea
-                      value={description}
+                      value={toPersianDigits(description)}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="توضیحات کامل فعالیت را بنویسید..."
                       dir="rtl"
@@ -378,7 +379,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                 <InputBox
                   label="آدرس"
                   placeholder="آدرس کامل را وارد کنید"
-                  value={address}
+                  value={toPersianDigits(address)}
                   onChange={setAddress}
                 />
 
@@ -430,8 +431,13 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     mx="auto"
                     width="140px"
                     min={1}
+                    locale="fa-IR"
                     value={peopleCount}
                     onValueChange={(e) => setPeopleCount(e.value)}
+                    formatOptions={{
+                      numberingSystem: "arabext",
+                      useGrouping: false,
+                    }}
                   >
                     <NumberInput.Control />
                     <NumberInput.Input borderRadius="8px" />
