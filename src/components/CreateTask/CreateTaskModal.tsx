@@ -34,9 +34,10 @@ import type { MapLocation } from "../../types/map";
 interface CreateTaskProbs {
   open: boolean;
   onClose: () => void;
+  onTaskCreated: () => void;
 }
 
-export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
+export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTaskProbs)
 {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -154,6 +155,8 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
           title: "موفق",
           description: "فعالیت با موفقیت ایجاد شد"
         });
+
+        onTaskCreated();
         setTimeout(() => {handleClose()}, 700);
       }
       else {

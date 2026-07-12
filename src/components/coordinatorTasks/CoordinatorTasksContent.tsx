@@ -104,6 +104,7 @@ const CoordinatorTasksContent = () => {
       <CreateTaskModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        onTaskCreated={() => {}}
       />
     </>
   );
