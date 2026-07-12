@@ -21,7 +21,16 @@ const CoordinatorTasksContent = () => {
     setActiveTab,
     loadMore,
     removeTaskLocally,
+    refetch,
   } = useCoordinatorTasks();
+
+  const handleTaskCreated = () => {
+    if (activeTab === "open") {
+      refetch();
+    } else {
+      setActiveTab("open");
+    }
+  };
 
   return (
     <>
@@ -104,6 +113,7 @@ const CoordinatorTasksContent = () => {
       <CreateTaskModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        onTaskCreated={handleTaskCreated}
       />
     </>
   );

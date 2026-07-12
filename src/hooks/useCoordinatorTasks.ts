@@ -30,5 +30,6 @@ export function useCoordinatorTasks() {
     setActiveTab,
     loadMore: fetchNextPage,
     removeTaskLocally,
+    refetch: fetchTasks,
   };
 }

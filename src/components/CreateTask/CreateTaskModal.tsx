@@ -15,28 +15,33 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 
-import { FiUpload } from "react-icons/fi";
-import { IoClose } from "react-icons/io5";
 import { useState, useEffect, useCallback } from "react";
+import { LuUpload, LuX } from "react-icons/lu";
+import { toGregorian } from "jalaali-js";
 import Dropdown from "../common/Dropdown";
 import InputBox from "../common/Inputbox";
+import Calendar from "../VolunteerProfile/Calender";
+import NeshanMap from "../common/Map";
+import { toaster } from "../../utils/toaster";
+import { toEnglishDigits, toPersianDigits } from "../../utils/formatters";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import { createTask } from "../../services/createTaskService";
 import { ReverseGeocode } from "../../services/reverseGeocodingService";
-import NeshanMap from "../common/Map";
 import type { MapLocation } from "../../types/map";
 
 
 interface CreateTaskProbs {
   open: boolean;
   onClose: () => void;
+  onTaskCreated: () => void;
 }
 
-export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
+export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTaskProbs)
 {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [address, setAddress] = useState("");
   const [skillIds, setSkillIds] = useState<number[]>([]);
@@ -49,34 +54,135 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
   const [zoom, setZoom] = useState(10);
 
   const handleSubmit = async () => {
-    try {
-      if (!image) {
-        alert("عکس فعالیت را انتخاب کنید");
-        return;
-      }
-      if (!location) {
-        alert("موقعیت را روی نقشه انتخاب کنید.")
-        return;
-      }
+    if (!image) {
+      toaster.create({
+        type: "warning",
+        title: "عکس فعالیت را انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!title.trim()) {
+      toaster.create({
+        type: "warning",
+        title: "عنوان فعالیت را وارد کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!description.trim()) {
+      toaster.create({
+        type: "warning",
+        title: "توضیحات فعالیت را وارد کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    const [year, month, day] = startDate.split("/");
+    if (!year || !month || !day) {
+      toaster.create({
+        type: "warning",
+        title: "تاریخ شروع فعالیت را به طور کامل انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!neighborhood) {
+      toaster.create({
+        type: "warning",
+        title: "محله را انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!location) {
+      toaster.create({
+        type: "warning",
+        title: "موقعیت فعالیت را روی نقشه انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (!address.trim()) {
+      toaster.create({
+        type: "warning",
+        title: "آدرس را وارد کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (skillIds.length === 0) {
+      toaster.create({
+        type: "warning",
+        title: "حداقل یک مهارت انتخاب کنید.",
+        meta: { closable: true },
+      });
+      return;
+    }
+    if (Number(toEnglishDigits(peopleCount)) < 1) {
+      toaster.create({
+        type: "warning",
+        title: "تعداد افراد باید حداقل ۱ نفر باشد.",
+        meta: { closable: true },
+      });
+      return;
+    }
 
-      await createTask({
+    try {
+      toaster.create({
+        id: "create-task",
+        type: "loading",
+        title: "در حال ایجاد فعالیت...",
+      });
+
+      const response = await createTask({
         pic: image,
         title,
         description,
         neighborhoodId: Number(neighborhood),
         address,
-        startDate: new Date().toISOString(),
-        count: Number(peopleCount),
+        startDate: calendarToIso(startDate),
+        count: Number(toEnglishDigits(peopleCount)),
         skills: skillIds,
         lat: location.lat,
         lng: location.lng,
       });
 
-      handleClose();
+      toaster.dismiss("create-task");
+      if (response.isSuccess) {
+        toaster.create({
+          type: "success",
+          title: "موفق",
+          description: "فعالیت با موفقیت ایجاد شد"
+        });
+
+        onTaskCreated();
+        setTimeout(() => {handleClose()}, 700);
+      }
+      else {
+        toaster.create({
+          type: "error",
+          title: "خطا",
+          description: response.message,
+        });
+      }
     }
-    catch (err) {
-      console.log(err);
+    catch (err: any) {
+      console.error(err);
+      toaster.dismiss("create-task");
+      toaster.create({
+        type: "error",
+        title: "خطا",
+        description: err.response?.data?.message ?? "خطایی رخ داد.",
+      });
     }
+  };
+
+  const calendarToIso = (date: string) => {
+    if (!date) return "";
+    const [jy, jm, jd] = date.split("/").map(Number);
+    const { gy, gm, gd } = toGregorian(jy, jm, jd);
+    return new Date(gy, gm - 1, gd, 12).toISOString();
   };
 
   const handleClose = () => {
@@ -87,6 +193,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
   const resetForm = () => {
     setTitle("");
     setDescription("");
+    setStartDate("");
     setNeighborhood("");
     setAddress("");
     setSkillIds([]);
@@ -187,11 +294,12 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
       }}
     >
       <Portal>
-        <Dialog.Backdrop bg="blackAlpha.500" />
+        <Dialog.Backdrop bg="blackAlpha.600" />
 
         <Dialog.Positioner>
           <Dialog.Content
-            maxW="430px"
+            w="95%"
+            maxW="390px"
             borderRadius="24px"
             dir="rtl"
           >
@@ -202,7 +310,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
             >
               <Dialog.Title
                 color="teal.600"
-                fontSize="2xl"
+                fontSize="20px"
                 fontWeight="bold"
               >
                 افزودن فعالیت جدید
@@ -216,13 +324,13 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   right="4"
                   top="4"
                 >
-                  <IoClose />
+                  <LuX />
                 </IconButton>
               </Dialog.CloseTrigger>
             </Dialog.Header>
 
-            <Dialog.Body pb="6">
-              <VStack gap="6">
+            <Dialog.Body px="12px">
+              <VStack gap="4">
                 {/* Upload */}
                 <Box w="full" px="16px">
                   <Text mb="2" fontWeight="bold" textAlign="right" pr="8px">
@@ -232,6 +340,15 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   <FileUpload.Root
                     alignItems="stretch"
                     maxFiles={1}
+                    maxFileSize={2 * 1024 * 1024}
+                    onFileReject={() => {
+                      toaster.create({
+                        type: "warning",
+                        title: "فایل وارد شده قابل پذیرش نیست.",
+                        description: "حداکثر حجم فایل ۲ مگابایت است.\nفرمت مورد پذیرش JPG و PNG میباشد.",
+                        meta: { closable: true },
+                      });
+                    }}
                     accept={["image/png", "image/jpeg"]}
                     onFileAccept={(details) => {
                       const file = details.files[0];
@@ -241,6 +358,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   >
                     <FileUpload.HiddenInput />
                     <FileUpload.Dropzone
+                      minH="200px"
                       border="2px dashed"
                       borderColor="gray.200"
                       borderRadius="12px"
@@ -251,17 +369,17 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                         bg: "gray.50",
                       }}
                     >
-                      <VStack gap="3">
+                      <VStack gap="2">
                         <Box bg="teal.50" p="4" borderRadius="full">
-                          <Icon as={FiUpload} boxSize={7} color="teal.600" />
+                          <Icon as={LuUpload} boxSize={7} color="teal.600" />
                         </Box>
 
                         <Text fontWeight="bold">
                           برای آپلود عکس کلیک کنید
                         </Text>
 
-                        <Text fontSize="sm" color="gray.500" >
-                          JPG, PNG فرمت قابل پذیرش
+                        <Text fontSize="xs" color="gray.500" >
+                          JPG, PNG حداکثر ۲ مگابایت با فرمت
                         </Text>
                       </VStack>
                     </FileUpload.Dropzone>
@@ -273,7 +391,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                 <InputBox
                   label="عنوان فعالیت"
                   placeholder="عنوان فعالیت را وارد کنید"
-                  value={title}
+                  value={toPersianDigits(title)}
                   onChange={setTitle}
                 />
 
@@ -285,66 +403,34 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     </Field.Label>
                   </Box>
 
-                  <Box w="full">
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="توضیحات کامل فعالیت را بنویسید..."
-                      dir="rtl"
-                      textAlign="right"
-                      minH="85px"
-                      resize="none"
-                      borderColor="gray.200"
-                      borderRadius="8px"
-                      px="8px"
-                      py="10px"
-                      _placeholder={{
-                        color: "gray.400",
-                      }}
-                      _focus={{
-                        borderColor: "teal.500",
-                        boxShadow: "none",
-                      }}
-                    />
-                  </Box>
+                  <Textarea
+                    value={toPersianDigits(description)}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="توضیحات کامل فعالیت را بنویسید..."
+                    dir="rtl"
+                    textAlign="right"
+                    minH="75px"
+                    resize="none"
+                    borderColor="gray.200"
+                    borderRadius="8px"
+                    p="8px"
+                    _placeholder={{
+                      color: "gray.400",
+                    }}
+                    _focus={{
+                      borderColor: "teal.500",
+                      boxShadow: "none",
+                    }}
+                  />
                 </Field.Root>
 
-                {/* Skills */}
-                <Dropdown
-                  label="مهارت ها"
-                  placeholder="می‌توانید چند مهارت انتخاب کنید"
-                  options={skillOptions}
-                  onChange={addSkill}
-                  onSearch={handleSkillSearch}
+                {/* Start Date */}
+                <Calendar
+                  futureOnly
+                  label="زمان شروع"
+                  value={startDate}
+                  onChange={setStartDate}
                 />
-                {selectedSkills.length > 0 && (
-                  <Wrap px="4" gap="2">
-                    {selectedSkills.map((skill) => (
-                      <WrapItem key={skill}>
-                        <Box
-                          display="flex"
-                          alignItems="center"
-                          gap="1"
-                          px="3"
-                          py="1.5"
-                          bg="teal.50"
-                          color="teal.600"
-                          borderRadius="8px"
-                          fontSize="sm"
-                          cursor="pointer"
-                          transition="0.2s"
-                          _hover={{
-                            bg: "teal.100",
-                          }}
-                          onClick={() => removeSkill(skill)}
-                        >
-                          <IoClose size={16} />
-                          <Text>{skill}</Text>
-                        </Box>
-                      </WrapItem>
-                    ))}
-                  </Wrap>
-                )}
 
                 {/* Neighborhood */}
                 <Dropdown
@@ -358,14 +444,14 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
 
                 {/* Map */}
                 <Box w="full" px="16px">
-                  {/* <Text
+                  <Text
                     mb="2"
-                    pr="2"
+                    pr="1"
                     fontWeight="bold"
                     textAlign="right"
                   >
                     موقعیت روی نقشه
-                  </Text> */}
+                  </Text>
                   <NeshanMap
                     editable
                     zoom={zoom}
@@ -388,9 +474,47 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                 <InputBox
                   label="آدرس"
                   placeholder="آدرس کامل را وارد کنید"
-                  value={address}
+                  value={toPersianDigits(address)}
                   onChange={setAddress}
                 />
+
+                {/* Skills */}
+                <Dropdown
+                  label="مهارت ها"
+                  placeholder="می‌توانید چند مهارت انتخاب کنید"
+                  options={skillOptions}
+                  onChange={addSkill}
+                  onSearch={handleSkillSearch}
+                />
+                {selectedSkills.length > 0 && (
+                  <Wrap px="4" gap="2">
+                    {selectedSkills.map((skill) => (
+                      <WrapItem key={skill}>
+                        <Box
+                          display="flex"
+                          alignItems="center"
+                          gap="1"
+                          pr="2"
+                          pl="3"
+                          py="1.5"
+                          bg="teal.50"
+                          color="teal.600"
+                          borderRadius="10px"
+                          fontSize="sm"
+                          cursor="pointer"
+                          transition="0.2s"
+                          _hover={{
+                            bg: "teal.100",
+                          }}
+                          onClick={() => removeSkill(skill)}
+                        >
+                          <LuX size={16} />
+                          <Text>{skill}</Text>
+                        </Box>
+                      </WrapItem>
+                    ))}
+                  </Wrap>
+                )}
 
                 {/* Count */}
                 <Box w="full" px="16px">
@@ -402,8 +526,13 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     mx="auto"
                     width="140px"
                     min={1}
+                    locale="fa-IR"
                     value={peopleCount}
                     onValueChange={(e) => setPeopleCount(e.value)}
+                    formatOptions={{
+                      numberingSystem: "arabext",
+                      useGrouping: false,
+                    }}
                   >
                     <NumberInput.Control />
                     <NumberInput.Input borderRadius="8px" />
@@ -412,7 +541,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
               </VStack>
             </Dialog.Body>
 
-            <Dialog.Footer flexDir="column" gap="3" px="10" pb="8" pt="4">
+            <Dialog.Footer flexDir="column" gap="3" px="10">
               <Button
                 w="full"
                 size="lg"
