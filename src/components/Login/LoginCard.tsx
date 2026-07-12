@@ -61,7 +61,7 @@ const LoginCard = () => {
         type: "success",
       });
 
-      navigate("/tasks");
+      navigate("/");
     } catch (err: any) {
       console.log("login error", err);
       toaster.create({
