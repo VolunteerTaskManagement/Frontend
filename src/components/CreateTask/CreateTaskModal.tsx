@@ -15,18 +15,17 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 
-import { FiUpload } from "react-icons/fi";
-import { IoClose } from "react-icons/io5";
 import { useState, useEffect, useCallback } from "react";
+import { LuUpload, LuX } from "react-icons/lu";
 import { toGregorian } from "jalaali-js";
 import Dropdown from "../common/Dropdown";
 import InputBox from "../common/Inputbox";
 import Calendar from "../VolunteerProfile/Calender";
+import NeshanMap from "../common/Map";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import { createTask } from "../../services/createTaskService";
 import { ReverseGeocode } from "../../services/reverseGeocodingService";
-import NeshanMap from "../common/Map";
 import type { MapLocation } from "../../types/map";
 
 
@@ -232,7 +231,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                   right="4"
                   top="4"
                 >
-                  <IoClose />
+                  <LuX />
                 </IconButton>
               </Dialog.CloseTrigger>
             </Dialog.Header>
@@ -274,7 +273,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     >
                       <VStack gap="2">
                         <Box bg="teal.50" p="4" borderRadius="full">
-                          <Icon as={FiUpload} boxSize={7} color="teal.600" />
+                          <Icon as={LuUpload} boxSize={7} color="teal.600" />
                         </Box>
 
                         <Text fontWeight="bold">
@@ -413,7 +412,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                           }}
                           onClick={() => removeSkill(skill)}
                         >
-                          <IoClose size={16} />
+                          <LuX size={16} />
                           <Text>{skill}</Text>
                         </Box>
                       </WrapItem>
