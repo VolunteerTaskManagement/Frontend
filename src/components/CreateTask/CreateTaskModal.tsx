@@ -326,7 +326,7 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
               </Dialog.CloseTrigger>
             </Dialog.Header>
 
-            <Dialog.Body>
+            <Dialog.Body px="12px">
               <VStack gap="4">
                 {/* Upload */}
                 <Box w="full" px="16px">
@@ -400,27 +400,25 @@ export default function CreateTaskModal({open, onClose}: CreateTaskProbs)
                     </Field.Label>
                   </Box>
 
-                  <Box w="full">
-                    <Textarea
-                      value={toPersianDigits(description)}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="توضیحات کامل فعالیت را بنویسید..."
-                      dir="rtl"
-                      textAlign="right"
-                      minH="75px"
-                      resize="none"
-                      borderColor="gray.200"
-                      borderRadius="8px"
-                      p="8px"
-                      _placeholder={{
-                        color: "gray.400",
-                      }}
-                      _focus={{
-                        borderColor: "teal.500",
-                        boxShadow: "none",
-                      }}
-                    />
-                  </Box>
+                  <Textarea
+                    value={toPersianDigits(description)}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="توضیحات کامل فعالیت را بنویسید..."
+                    dir="rtl"
+                    textAlign="right"
+                    minH="75px"
+                    resize="none"
+                    borderColor="gray.200"
+                    borderRadius="8px"
+                    p="8px"
+                    _placeholder={{
+                      color: "gray.400",
+                    }}
+                    _focus={{
+                      borderColor: "teal.500",
+                      boxShadow: "none",
+                    }}
+                  />
                 </Field.Root>
 
                 {/* Start Date */}
