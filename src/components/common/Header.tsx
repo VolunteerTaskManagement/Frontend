@@ -7,9 +7,6 @@ import { useTaskImage } from "../../hooks/useTaskImage";
 import { disconnectNotificationSocket } from "../../services/notificationSocket";
 import { brandColors } from "../../theme/tokens";
 import NotificationBell from "./NotificationBell";
-import { LuBell, LuUserRoundX } from "react-icons/lu";
-import { getProfile } from "../../services/profileService";
-import type { ProfileResponse } from "../../types/profile";
 import { useAuth } from "../../contexts/AuthContext";
 
 
