@@ -9,6 +9,7 @@ export function useNotifications() {
   const error = useNotificationStore((state) => state.error);
   const fetchLogs = useNotificationStore((state) => state.fetchLogs);
   const addLogFromSocket = useNotificationStore((state) => state.addLogFromSocket);
+  const markAllSeenLocally = useNotificationStore((state) => state.markAllSeenLocally);
   const unseenCount = useNotificationStore(selectUnseenCount);
 
   // لود اولیه‌ی لیست از API
@@ -42,5 +43,5 @@ export function useNotifications() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { logs, isLoading, error, unseenCount, refetch: fetchLogs };
+  return { logs, isLoading, error, unseenCount, refetch: fetchLogs, markAllSeenLocally };
 }

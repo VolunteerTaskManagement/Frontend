@@ -8,10 +8,8 @@ interface NotificationState {
   error: string | null;
   fetchLogs: () => Promise<void>;
   addLogFromSocket: (raw: unknown) => void;
+  markAllSeenLocally: () => void;
 }
-
-// پیامی که از سوکت می‌رسد ممکن است یک رشته‌ی ساده باشد (طبق نمونه‌ای که داده شد)
-// یا یک آبجکت کامل هم‌شکل با NotificationLog؛ این تابع هر دو حالت را نرمالایز می‌کند.
 function normalizeSocketPayload(raw: unknown): NotificationLog | null {
   if (typeof raw === 'string') {
     return {
@@ -67,6 +65,10 @@ export const useNotificationStore = create<NotificationState>((set) => ({
 
     set((state) => ({ logs: [notification, ...state.logs] }));
   },
+  markAllSeenLocally: () =>
+    set((state) => ({
+      logs: state.logs.map((log) => ({ ...log, isSeen: true })),
+    })),
 }));
 
 export const selectUnseenCount = (state: NotificationState) =>
