@@ -7,10 +7,15 @@ import { useTaskImage } from "../../hooks/useTaskImage";
 import { disconnectNotificationSocket } from "../../services/notificationSocket";
 import { brandColors } from "../../theme/tokens";
 import NotificationBell from "./NotificationBell";
+import { LuBell, LuUserRoundX } from "react-icons/lu";
+import { getProfile } from "../../services/profileService";
+import type { ProfileResponse } from "../../types/profile";
+import { useAuth } from "../../contexts/AuthContext";
 
 
 const Header = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [open, setOpen] = useState(false);
   const profile = useProfileStore((state) => state.profile);
   const fetchProfile = useProfileStore((state) => state.fetchProfile);
@@ -21,8 +26,9 @@ const Header = () => {
 
   const handleLogout = () => {
     disconnectNotificationSocket();
-    localStorage.clear();
-    navigate("/login");
+    setOpen(false);
+    logout();
+    navigate("/login", { replace: true });
   };
 
   useEffect(() => {

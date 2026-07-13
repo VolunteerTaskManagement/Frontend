@@ -32,6 +32,9 @@ import {
   HiOutlinePhone,
 } from "react-icons/hi";
 
+import { authStorage } from "../../services/authStorage";
+import { toGregorian, toJalaali } from "jalaali-js";
+
 const normalizeText = (str?: string | null): string => {
   if (!str) return "";
   return str
@@ -42,8 +45,31 @@ const normalizeText = (str?: string | null): string => {
     .replace(/\s+/g, " ");
 };
 
-const VolunteerProfileCard = () => {
+const normalizeDate = (date: string | null | undefined): string => {
+  if (!date) return "";
+  return date
+    .toString()
+    .trim()
+    .replace(/[\\/]+/g, "/")
+    .replace(/0*(\d+)/g, "$1")   
+    .replace(/\s+/g, "");
+};
+
+const normalizeNeighId = (val: any): number => {
+  const n = Number(val);
+  return isNaN(n) || n <= 0 ? 0 : n;
+};
+
+  const VolunteerProfileCard = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // JWT Protection: redirect to login if no token
+  useEffect(() => {
+    const token = authStorage.getAccessToken();
+    if (!token) {
+      window.location.href = "/login";
+    }
+  }, []);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -57,14 +83,22 @@ const VolunteerProfileCard = () => {
   const [neighborhoodTitle, setNeighborhoodTitle] = useState("");
   const [neighborhoodId, setNeighborhoodId] = useState<number>(0);
 
-  const [abilities, setAbilities] = useState<string[]>([]);
-  const [abilityIds, setAbilityIds] = useState<number[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<{ id: number; label: string }[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [isDirty, setIsDirty] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false); 
+  const ignoreDirtyUntil = useRef(0);
+
+  useEffect(() => {
+    if (hasLoaded) {
+      setIsDirty(false);
+      ignoreDirtyUntil.current = Date.now() + 0; 
+    }
+  }, [hasLoaded]);
 
   const [originalProfile, setOriginalProfile] = useState<any>(null);
 
@@ -78,26 +112,32 @@ const VolunteerProfileCard = () => {
 
   const isoToCalendar = (iso?: string | null) => {
     if (!iso) return "";
-    const clean = iso.split("T")[0].replace(/-/g, "/");
-    const parts = clean.split("/");
-    if (parts.length === 3) {
-      const y = Number(parts[0]);
-      const m = Number(parts[1]);
-      const d = Number(parts[2]);
-      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-        return `${y}/${m}/${d}`;
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return "";
+
+      const { jy, jm, jd } = toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+      return `${jy}/${jm}/${jd}`;
+    } catch {
+      const clean = iso.split("T")[0].replace(/-/g, "/");
+      const parts = clean.split("/");
+      if (parts.length === 3) {
+        const y = Number(parts[0]);
+        const m = Number(parts[1]);
+        const d = Number(parts[2]);
+        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+          return `${y}/${m}/${d}`;
+        }
       }
+      return clean;
     }
-    return clean;
   };
 
   const calendarToIso = (date: string) => {
     if (!date) return "";
-    const [y, m, d] = date.split("/");
-    const yy = Number(y) || 1400;
-    const mm = String(Number(m) || 1).padStart(2, "0");
-    const dd = String(Number(d) || 1).padStart(2, "0");
-    return `${yy}-${mm}-${dd}T00:00:00`;
+    const [jy, jm, jd] = date.split("/").map(Number);
+    const { gy, gm, gd } = toGregorian(jy, jm, jd);
+    return new Date(gy, gm - 1, gd, 12).toISOString();
   };
 
   const handleNeighborhoodSearch = useCallback(async (text: string) => {
@@ -136,10 +176,11 @@ const VolunteerProfileCard = () => {
     }
   }, []);
 
-  const addAbility = (value: string) => {
+  const addSkill = (value: string) => {
     if (!value) return;
 
-    if (abilityIds.includes(Number(value))) return;
+    const skillId = Number(value);
+    if (selectedSkills.some((s) => s.id === skillId)) return;
 
     const skill = skillOptions.find(
       (x) => x.value === value
@@ -147,23 +188,12 @@ const VolunteerProfileCard = () => {
 
     if (!skill) return;
 
-    setAbilityIds((prev) => [...prev, Number(value)]);
-    setAbilities((prev) => [...prev, skill.label]);
+    setSelectedSkills((prev) => [...prev, { id: skillId, label: skill.label }]);
   };
 
-  const removeAbility = (label: string) => {
-    const skill = skillOptions.find(
-      (x) => x.label === label
-    );
-
-    if (!skill) return;
-
-    setAbilities((prev) =>
-      prev.filter((x) => x !== label)
-    );
-
-    setAbilityIds((prev) =>
-      prev.filter((x) => x !== Number(skill.value))
+  const removeSkill = (label: string) => {
+    setSelectedSkills((prev) =>
+      prev.filter((s) => s.label !== label)
     );
   };
 
@@ -193,6 +223,13 @@ const VolunteerProfileCard = () => {
   }, [handleNeighborhoodSearch, handleSkillSearch]);
 
   useEffect(() => {
+    // JWT Protection - redirect if no token
+    const token = authStorage.getAccessToken();
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
     const loadProfile = async () => {
       try {
         const res = await getProfile();
@@ -214,13 +251,21 @@ const VolunteerProfileCard = () => {
           return;
         }
 
-        setFirstName(p.firstName);
-        setLastName(p.lastName);
-        setPhoneNumber(p.phoneNumber ?? "");
-        setBirthDate(isoToCalendar(p.birthDate));
+        const loadedFirstName = p.firstName || "";
+        const loadedLastName = p.lastName || "";
+        const loadedPhone = p.phoneNumber ?? "";
+        const loadedBirth = isoToCalendar(p.birthDate);
 
-        setAbilities(p.skillTitles);
-        setAbilityIds(p.skills);
+        setFirstName(loadedFirstName);
+        setLastName(loadedLastName);
+        setPhoneNumber(loadedPhone);
+        setBirthDate(loadedBirth);
+
+        const initialSkills = (p.skills || []).map((id: number, index: number) => ({
+          id: Number(id),
+          label: (p.skillTitles && p.skillTitles[index]) || "",
+        })).filter((s: any) => s.label);
+        setSelectedSkills(initialSkills);
 
         let resolvedId = p.neighborhoodId || 0;
         let resolvedTitle = p.neighborhoodTitle || "";
@@ -276,12 +321,12 @@ const VolunteerProfileCard = () => {
           if (selected) {
             resolvedId = selected.id;
             resolvedTitle = selected.title;
-            setNeighborhood(selected.id.toString());
-            setNeighborhoodId(selected.id);
-            setNeighborhoodTitle(selected.title);
-          } else {
-            setNeighborhoodTitle(resolvedTitle);
           }
+
+          const finalNeighStr = resolvedId && resolvedId !== 0 ? resolvedId.toString() : "";
+          setNeighborhood(finalNeighStr);
+          setNeighborhoodId(resolvedId || 0);
+          setNeighborhoodTitle(resolvedTitle || "");
         } catch (err) {
           console.error("Error setting neighborhood:", err);
           setNeighborhoodTitle(resolvedTitle);
@@ -296,15 +341,23 @@ const VolunteerProfileCard = () => {
         }
 
         setOriginalProfile({
-          firstName: p.firstName,
-          lastName: p.lastName,
-          phoneNumber: p.phoneNumber,
-          birthDate: isoToCalendar(p.birthDate),
-          skills: p.skills,
-          neighborhoodId: resolvedId,
-          neighborhoodTitle: resolvedTitle,
-          image: p.picUrl,
+          firstName: loadedFirstName,
+          lastName: loadedLastName,
+          phoneNumber: loadedPhone,
+          birthDate: loadedBirth,
+          skills: (p.skills || []).map((id: any) => Number(id)),
+          neighborhoodId: resolvedId || 0,
+          neighborhoodTitle: resolvedTitle || "",
+          image: p.picUrl || null,
         });
+
+        setProfileFile(null);
+        setIsDirty(false);
+        setTimeout(() => {
+          setIsDirty(false);
+          setHasLoaded(true);
+        }, 50);
+
       } catch (err: any) {
         toaster.create({
           title: "خطا",
@@ -320,17 +373,43 @@ const VolunteerProfileCard = () => {
   }, []);
 
   useEffect(() => {
-    if (!originalProfile) return;
+    if (!originalProfile || !hasLoaded || Date.now() < ignoreDirtyUntil.current) {
+      setIsDirty(false);
+      return;
+    }
+
+    const nameChanged =
+      normalizeText(firstName) !== normalizeText(originalProfile.firstName) ||
+      normalizeText(lastName) !== normalizeText(originalProfile.lastName);
+
+    const currentPhone = (phoneNumber || "").trim();
+    const origPhone = (originalProfile.phoneNumber || "").trim();
+    const phoneChanged = currentPhone !== origPhone;
+
+    const currentBirth = normalizeDate(birthDate);
+    const origBirth = normalizeDate(originalProfile.birthDate);
+    const birthChanged = currentBirth !== origBirth;
+
+    const currentNeighNum = normalizeNeighId(neighborhood);
+    const origNeighNum = normalizeNeighId(originalProfile.neighborhoodId);
+    const neighChanged = currentNeighNum !== origNeighNum;
+
+    const currentSkillIds = selectedSkills.map((s) => s.id).sort((a, b) => a - b);
+    const originalSkillIds = [...(originalProfile.skills || [])]
+      .map((id: any) => Number(id))
+      .sort((a, b) => a - b);
+    const skillsChanged =
+      JSON.stringify(currentSkillIds) !== JSON.stringify(originalSkillIds);
+
+    const imageChanged = profileFile !== null;
 
     const changed =
-      firstName !== originalProfile.firstName ||
-      lastName !== originalProfile.lastName ||
-      phoneNumber !== originalProfile.phoneNumber ||
-      birthDate !== originalProfile.birthDate ||
-      neighborhood !== originalProfile.neighborhoodId?.toString() ||
-      JSON.stringify(abilityIds.sort()) !==
-        JSON.stringify([...(originalProfile.skills || [])].sort()) ||
-      profileFile !== null;
+      nameChanged ||
+      phoneChanged ||
+      birthChanged ||
+      neighChanged ||
+      skillsChanged ||
+      imageChanged;
 
     setIsDirty(changed);
   }, [
@@ -339,9 +418,10 @@ const VolunteerProfileCard = () => {
     phoneNumber,
     birthDate,
     neighborhood,
-    abilityIds,
+    selectedSkills,
     profileFile,
     originalProfile,
+    hasLoaded,
   ]);
 
   const handleSave = async () => {
@@ -361,7 +441,7 @@ const VolunteerProfileCard = () => {
         phoneNumber,
         birthDate: calendarToIso(birthDate),
         neighborhoodId,
-        skills: abilityIds,
+        skills: selectedSkills.map((s) => s.id),
         profilePic: profileFile,
       });
 
@@ -377,16 +457,39 @@ const VolunteerProfileCard = () => {
         const savedNeighborhoodTitle =
           p.neighborhoodTitle || neighborhoodTitle;
 
+        const freshBirth = isoToCalendar(p.birthDate);
+
+        // Update skills from fresh response
+        const savedSkills = (p.skills || []).map((id: number, index: number) => ({
+          id: Number(id),
+          label: (p.skillTitles && p.skillTitles[index]) || "",
+        })).filter((s: any) => s.label);
+
+        // Store EXACT fresh values as new original
         setOriginalProfile({
-          firstName: p.firstName,
-          lastName: p.lastName,
-          phoneNumber: p.phoneNumber,
-          birthDate: isoToCalendar(p.birthDate),
-          skills: p.skills,
-          neighborhoodId: savedNeighborhoodId,
-          neighborhoodTitle: savedNeighborhoodTitle,
-          image: p.picUrl,
+          firstName: p.firstName || "",
+          lastName: p.lastName || "",
+          phoneNumber: p.phoneNumber ?? "",
+          birthDate: freshBirth,
+          skills: (p.skills || []).map((id: any) => Number(id)),
+          neighborhoodId: savedNeighborhoodId || 0,
+          neighborhoodTitle: savedNeighborhoodTitle || "",
+          image: p.picUrl || null,
         });
+
+        // Sync ALL display states to exactly match what we just saved
+        setFirstName(p.firstName || "");
+        setLastName(p.lastName || "");
+        setPhoneNumber(p.phoneNumber ?? "");
+        setBirthDate(freshBirth);
+
+        const finalNeighStr = savedNeighborhoodId && savedNeighborhoodId !== 0 
+          ? savedNeighborhoodId.toString() 
+          : "";
+        setNeighborhood(finalNeighStr);
+        setNeighborhoodId(savedNeighborhoodId || 0);
+        setNeighborhoodTitle(savedNeighborhoodTitle || "");
+        setSelectedSkills(savedSkills);
 
         setProfileFile(null);
         setIsDirty(false);
@@ -603,16 +706,16 @@ const VolunteerProfileCard = () => {
           placeholder=" مهارت های خود را انتخاب کنید"
           options={skillOptions}
           onSearch={handleSkillSearch}
-          onChange={addAbility}
+          onChange={addSkill}
         />
-        {abilities.length > 0 && (
+        {selectedSkills.length > 0 && (
           <Wrap
             px="4"
             pt="3"
             gap="2"
           >
-            {abilities.map((item) => (
-              <WrapItem key={item}>
+            {selectedSkills.map((skill) => (
+              <WrapItem key={skill.id}>
                 <Box
                   display="flex"
                   alignItems="center"
@@ -627,10 +730,10 @@ const VolunteerProfileCard = () => {
                   _hover={{
                     bg: "teal.100",
                   }}
-                  onClick={() => removeAbility(item)}
+                  onClick={() => removeSkill(skill.label)}
                 >
                   <IoClose size={16} />
-                  <Text>{item}</Text>
+                  <Text>{skill.label}</Text>
                 </Box>
               </WrapItem>
             ))}
@@ -649,13 +752,13 @@ const VolunteerProfileCard = () => {
       <MainButton
         text={saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
         onClick={handleSave}
-        disabled={!isDirty || saving}
+        disabled={!hasLoaded || !isDirty || saving}
         {...({
           mt: "4",
           mb: "4",
           w: "50%",
           mx: "auto",
-          bg: isDirty ? "#F97316" : "gray.400",
+          bg: (!hasLoaded || !isDirty) ? "gray.400" : "#F97316",
         } as any)}
       />
     </VStack>
