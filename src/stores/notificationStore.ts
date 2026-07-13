@@ -1,75 +1,72 @@
 import { create } from 'zustand';
-import { fetchNotificationLogs } from '../services/notificationService';
+import { fetchNotificationCount, fetchNotificationLogs } from '../services/notificationService';
 import type { NotificationLog } from '../types/notification';
 
 interface NotificationState {
   logs: NotificationLog[];
-  isLoading: boolean;
-  error: string | null;
+  isLoadingLogs: boolean;
+  logsError: string | null;
+
+  // عدد badge؛ منبع حقیقتش API شمارش (GET /NotificationLogs/count) هست،
+  // نه سوکت و نه لیست کامل. با تعویض تب/صفحه عوض نمی‌شه، فقط با کلیک روی زنگوله صفر می‌شه.
+  unseenCount: number;
+  hasFetchedCount: boolean;
+  isLoadingCount: boolean;
+
   fetchLogs: () => Promise<void>;
-  addLogFromSocket: (raw: unknown) => void;
-  markAllSeenLocally: () => void;
-}
-function normalizeSocketPayload(raw: unknown): NotificationLog | null {
-  if (typeof raw === 'string') {
-    return {
-      id: Date.now(),
-      title: raw,
-      type: 'info',
-      usersId: [],
-      isSeen: false,
-      createDateFa: '',
-    };
-  }
-
-  if (raw && typeof raw === 'object' && 'title' in raw) {
-    const obj = raw as Partial<NotificationLog>;
-    return {
-      id: obj.id ?? Date.now(),
-      title: obj.title ?? '',
-      type: obj.type ?? 'info',
-      usersId: obj.usersId ?? [],
-      isSeen: obj.isSeen ?? false,
-      createDateFa: obj.createDateFa ?? '',
-    };
-  }
-
-  return null;
+  fetchUnseenCount: (force?: boolean) => Promise<void>;
+  resetUnseenCountLocally: () => void;
 }
 
-export const useNotificationStore = create<NotificationState>((set) => ({
+export const useNotificationStore = create<NotificationState>((set, get) => ({
   logs: [],
-  isLoading: false,
-  error: null,
+  isLoadingLogs: false,
+  logsError: null,
 
+  unseenCount: 0,
+  hasFetchedCount: false,
+  isLoadingCount: false,
+
+  // این فقط وقتی صدا زده می‌شه که کاربر روی آیکون زنگوله کلیک کنه
   fetchLogs: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoadingLogs: true, logsError: null });
 
     try {
       const res = await fetchNotificationLogs();
 
       if (!res.isSuccess) {
-        set({ error: res.message ?? 'دریافت اعلان‌ها با خطا مواجه شد.', isLoading: false });
+        set({ logsError: res.message ?? 'دریافت اعلان‌ها با خطا مواجه شد.', isLoadingLogs: false });
         return;
       }
 
-      set({ logs: res.value, isLoading: false });
+      set({ logs: res.value, isLoadingLogs: false });
     } catch {
-      set({ error: 'دریافت اعلان‌ها با خطا مواجه شد.', isLoading: false });
+      set({ logsError: 'دریافت اعلان‌ها با خطا مواجه شد.', isLoadingLogs: false });
     }
   },
 
-  addLogFromSocket: (raw) => {
-    const notification = normalizeSocketPayload(raw);
-    if (!notification) return;
+  // force=true یعنی حتی اگه قبلاً یک بار گرفته شده، دوباره از سرور بگیر
+  // (مثلاً بعد از رسیدن یه پیام جدید از سوکت، برای به‌روز نگه‌داشتن عدد واقعی)
+  fetchUnseenCount: async (force = false) => {
+    if (!force && (get().hasFetchedCount || get().isLoadingCount)) return;
 
-    set((state) => ({ logs: [notification, ...state.logs] }));
+    set({ isLoadingCount: true });
+
+    try {
+      const res = await fetchNotificationCount();
+
+      if (!res.isSuccess) {
+        set({ isLoadingCount: false, hasFetchedCount: true });
+        return;
+      }
+
+      set({ unseenCount: res.value ?? 0, isLoadingCount: false, hasFetchedCount: true });
+    } catch {
+      set({ isLoadingCount: false, hasFetchedCount: true });
+    }
   },
-  markAllSeenLocally: () =>
-    set((state) => ({
-      logs: state.logs.map((log) => ({ ...log, isSeen: true })),
-    })),
-}));
 
-export const selectUnseenCount = (state: NotificationState) =>
-  state.logs.filter((log) => !log.isSeen).length;
+  // چون endpoint واقعی برای mark-as-seen نداریم، با کلیک روی زنگوله فقط به‌صورت
+  // محلی (optimistic) عدد badge رو صفر می‌کنیم.
+  resetUnseenCountLocally: () => set({ unseenCount: 0 }),
+}));

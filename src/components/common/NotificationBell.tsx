@@ -7,12 +7,11 @@ import { toPersianDigits } from '../../utils/formatters';
 
 const NotificationBell = () => {
   const [open, setOpen] = useState(false);
-  const { logs, isLoading, error, unseenCount, markAllSeenLocally } = useNotifications();
-
+  const { logs, isLoadingLogs, logsError, unseenCount, openNotificationPanel } = useNotifications();
   const handleToggle = () => {
     setOpen((prev) => {
       const next = !prev;
-      if (next) markAllSeenLocally();
+      if (next) openNotificationPanel();
       return next;
     });
   };
@@ -66,13 +65,13 @@ const NotificationBell = () => {
           flexDirection="column"
         >
           <Box overflowY="auto" p="2" flex="1">
-            {isLoading ? (
+            {isLoadingLogs ? (
               <VStack py="6">
                 <Spinner size="sm" color="brand.500" />
               </VStack>
-            ) : error ? (
+            ) : logsError ? (
               <Text fontSize="xs" color="red.500" textAlign="center" py="4">
-                {error}
+                {logsError}
               </Text>
             ) : logs.length === 0 ? (
               <Text fontSize="xs" color={brandColors.textSecondary} textAlign="center" py="4">
