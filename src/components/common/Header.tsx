@@ -1,18 +1,22 @@
-import { Avatar, Box, Button, Flex, HStack, Image } from "@chakra-ui/react";
+import { Avatar, Box, Button, Flex, HStack, Image, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LuUserRoundX } from "react-icons/lu";
-import { getProfile } from "../../services/profileService";
+import { useProfileStore } from "../../stores/profileStore";
 import { useTaskImage } from "../../hooks/useTaskImage";
 import { disconnectNotificationSocket } from "../../services/notificationSocket";
-import type { ProfileResponse } from "../../types/profile";
+import { brandColors } from "../../theme/tokens";
 import NotificationBell from "./NotificationBell";
 
 
 const Header = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [profile, setProfile] = useState<ProfileResponse["value"] | null>(null);
+  const profile = useProfileStore((state) => state.profile);
+  const fetchProfile = useProfileStore((state) => state.fetchProfile);
+
+  // profile.picUrl هم مثل picUrl تسک‌ها یک presigned URL از MinIO است که فقط از سمت
+  // بک‌اند (نه مستقیم از مرورگر) قابل‌دسترسیه؛ پس باید از همون پروکسی مدیا رد بشه.
   const { imageSrc: avatarSrc } = useTaskImage(profile?.picUrl);
 
   const handleLogout = () => {
@@ -22,17 +26,8 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await getProfile();
-        setProfile(res.value);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   return (
     <Flex
@@ -82,15 +77,18 @@ const Header = () => {
         <NotificationBell />
       </HStack>
 
-      <Image
-        src="/logo.png"
-        alt="Logo"
-        h="24px"
-        boxSize={8}
-        objectFit="contain"
-        cursor="pointer"
-        onClick={() => navigate("/tasks")}
-      />
+      <HStack gap="2" cursor="pointer" onClick={() => navigate("/tasks")}>
+        <Text fontSize="sm" fontWeight="bold" color={brandColors.primary}>
+          سامانه مدیریت وظایف
+        </Text>
+        <Image
+          src="/logo.png"
+          alt="Logo"
+          h="24px"
+          boxSize={8}
+          objectFit="contain"
+        />
+      </HStack>
     </Flex>
   );
 };
