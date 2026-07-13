@@ -16,6 +16,7 @@ const Header = () => {
   const [open, setOpen] = useState(false);
   const profile = useProfileStore((state) => state.profile);
   const fetchProfile = useProfileStore((state) => state.fetchProfile);
+  const resetProfile = useProfileStore((state) => state.resetProfile);
 
   // profile.picUrl هم مثل picUrl تسک‌ها یک presigned URL از MinIO است که فقط از سمت
   // بک‌اند (نه مستقیم از مرورگر) قابل‌دسترسیه؛ پس باید از همون پروکسی مدیا رد بشه.
@@ -23,6 +24,7 @@ const Header = () => {
 
   const handleLogout = () => {
     disconnectNotificationSocket();
+    resetProfile();
     setOpen(false);
     logout();
     navigate("/login", { replace: true });
