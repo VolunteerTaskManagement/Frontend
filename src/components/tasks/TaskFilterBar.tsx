@@ -21,7 +21,7 @@ interface TaskFilterBarProps {
 
 const STATUS_OPTIONS: FilterOption[] = [
   { value: String(TASK_STATUS.Open), label: 'باز' },
-  { value: String(TASK_STATUS.Assigned), label: 'تخصیص‌یافته' },
+  { value: String(TASK_STATUS.Assigned), label: 'در حال انجام' },
   { value: String(TASK_STATUS.Completed), label: 'تکمیل‌شده' },
 ];
 
