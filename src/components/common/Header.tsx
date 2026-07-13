@@ -1,20 +1,22 @@
-import { Avatar, Box, Button, Flex, HStack, IconButton, Image } from "@chakra-ui/react";
+import { Avatar, Box, Button, Flex, HStack, Image } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LuBell, LuUserRoundX } from "react-icons/lu";
+import { LuUserRoundX } from "react-icons/lu";
 import { getProfile } from "../../services/profileService";
+import { useTaskImage } from "../../hooks/useTaskImage";
+import { disconnectNotificationSocket } from "../../services/notificationSocket";
 import type { ProfileResponse } from "../../types/profile";
+import NotificationBell from "./NotificationBell";
 
 
 const Header = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<ProfileResponse["value"] | null>(null);
-  const avatarUrl = profile?.picUrl
-  ? `http://89.42.199.196:5213/api/MediaFiles/StramImg?FileUrl=${encodeURIComponent(profile.picUrl)}`
-  : undefined;
+  const { imageSrc: avatarSrc } = useTaskImage(profile?.picUrl);
 
   const handleLogout = () => {
+    disconnectNotificationSocket();
     localStorage.clear();
     navigate("/login");
   };
@@ -49,7 +51,7 @@ const Header = () => {
             cursor="pointer"
             onClick={() => setOpen(!open)}
           >
-            <Avatar.Image src={avatarUrl} />
+            <Avatar.Image src={avatarSrc ?? undefined} />
             <Avatar.Fallback
               name={`${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`}
             />
@@ -77,13 +79,7 @@ const Header = () => {
           )}
         </Box>
 
-        <IconButton
-          aria-label="Notifications"
-          variant="plain"
-          size="sm"
-        >
-          <LuBell />
-        </IconButton>
+        <NotificationBell />
       </HStack>
 
       <Image
