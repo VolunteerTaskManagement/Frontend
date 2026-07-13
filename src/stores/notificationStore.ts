@@ -3,6 +3,7 @@ import { fetchNotificationCount, fetchNotificationLogs } from '../services/notif
 import type { NotificationLog } from '../types/notification';
 
 interface NotificationState {
+  // لیست کامل اعلان‌ها؛ فقط با کلیک روی زنگوله (GET /NotificationLogs) گرفته می‌شه
   logs: NotificationLog[];
   isLoadingLogs: boolean;
   logsError: string | null;
@@ -16,6 +17,7 @@ interface NotificationState {
   fetchLogs: () => Promise<void>;
   fetchUnseenCount: (force?: boolean) => Promise<void>;
   resetUnseenCountLocally: () => void;
+  resetNotifications: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
@@ -69,4 +71,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   // چون endpoint واقعی برای mark-as-seen نداریم، با کلیک روی زنگوله فقط به‌صورت
   // محلی (optimistic) عدد badge رو صفر می‌کنیم.
   resetUnseenCountLocally: () => set({ unseenCount: 0 }),
+
+  resetNotifications: () =>
+    set({
+      logs: [],
+      isLoadingLogs: false,
+      logsError: null,
+      unseenCount: 0,
+      hasFetchedCount: false,
+      isLoadingCount: false,
+    }),
 }));

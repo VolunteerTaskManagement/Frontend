@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../../services/auth.service";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTaskFiltersStore } from "../../stores/taskFiltersStore";
+import { useNotificationStore } from "../../stores/notificationStore";
 import { toaster } from "../../utils/toaster";
 import logo from "../../assets/images/logo.svg"
 
@@ -24,6 +25,7 @@ const LoginCard = () => {
   const { loginUser } = useAuth();
   const navigate = useNavigate();
   const initFromProfile = useTaskFiltersStore((state) => state.initFromProfile);
+  const fetchUnseenCount = useNotificationStore((state) => state.fetchUnseenCount);
   
   const handleLogin = async () => {
     if (!username || !password) {
@@ -54,7 +56,8 @@ const LoginCard = () => {
       );
       
       initFromProfile(res.value.skills ?? [], res.value.neighborhoodId ?? null);
-      
+      fetchUnseenCount(true);
+
       toaster.create({
         title: "ورود موفق",
         description: "با موفقیت وارد شدید",
