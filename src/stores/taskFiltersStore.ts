@@ -5,7 +5,7 @@ export const DEFAULT_TASK_FILTERS: TaskFilters = {
   search: '',
   skillIds: [],
   neighborhoodIds: [],
-  statusIds: [],
+  statusIds: [1],
 };
 
 interface TaskFiltersState {
