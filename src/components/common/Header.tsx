@@ -34,6 +34,7 @@ const Header = () => {
   };
 
   useEffect(() => {
+    fetchProfile();
   }, [fetchProfile]);
 
   return (
