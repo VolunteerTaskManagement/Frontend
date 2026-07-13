@@ -7,3 +7,9 @@ export const fetchNotificationLogs = async (): Promise<ApiResponse<NotificationL
 
   return res.data;
 };
+
+export const fetchNotificationCount = async (): Promise<ApiResponse<number>> => {
+  const res = await api.get('/NotificationLogs/count');
+
+  return res.data;
+};

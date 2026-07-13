@@ -11,6 +11,7 @@ import InputBox from "../common/Inputbox";
 import MainButton from "../common/MainButton";
 
 import { getProfile, updateCoordinatorProfile } from "../../services/profileService";
+import { useProfileStore } from "../../stores/profileStore";
 import { toaster } from "../../utils/toaster";
 import {
   IoTextOutline,
@@ -27,6 +28,7 @@ import {
 const CoordinatorProfileCard = () => {
   // const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const setStoredProfile = useProfileStore((state) => state.setProfile);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -120,6 +122,8 @@ const CoordinatorProfileCard = () => {
           nationalCode: p.nationalCode ?? "",
           image: p.picUrl,
         });
+
+        setStoredProfile(p);
       } catch (err: any) {
         console.error("Error loading coordinator profile:", err);
         toaster.create({
@@ -185,6 +189,7 @@ const CoordinatorProfileCard = () => {
           nationalCode: p.nationalCode ?? "",
           image: p.picUrl,
         });
+        setStoredProfile(p);
 
         setProfileFile(null);
         setIsDirty(false);

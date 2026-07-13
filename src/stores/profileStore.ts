@@ -7,6 +7,8 @@ interface ProfileState {
   isLoading: boolean;
   hasFetched: boolean;
   fetchProfile: () => Promise<void>;
+  setProfile: (profile: ProfileResponse['value']) => void;
+  resetProfile: () => void;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -27,4 +29,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({ isLoading: false });
     }
   },
+
+  setProfile: (profile) => set({ profile, hasFetched: true }),
+
+  resetProfile: () => set({ profile: null, isLoading: false, hasFetched: false }),
 }));

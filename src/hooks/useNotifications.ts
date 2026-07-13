@@ -1,31 +1,36 @@
 import { useEffect } from 'react';
-import { selectUnseenCount, useNotificationStore } from '../stores/notificationStore';
+import { useNotificationStore } from '../stores/notificationStore';
 import { connectNotificationSocket, onReceiveNotification } from '../services/notificationSocket';
 import { toaster } from '../utils/toaster';
+import { playNotificationSound } from '../utils/playNotificationSound';
 
 export function useNotifications() {
   const logs = useNotificationStore((state) => state.logs);
-  const isLoading = useNotificationStore((state) => state.isLoading);
-  const error = useNotificationStore((state) => state.error);
+  const isLoadingLogs = useNotificationStore((state) => state.isLoadingLogs);
+  const logsError = useNotificationStore((state) => state.logsError);
   const fetchLogs = useNotificationStore((state) => state.fetchLogs);
-  const addLogFromSocket = useNotificationStore((state) => state.addLogFromSocket);
-  const markAllSeenLocally = useNotificationStore((state) => state.markAllSeenLocally);
-  const unseenCount = useNotificationStore(selectUnseenCount);
 
-  // لود اولیه‌ی لیست از API
+  const unseenCount = useNotificationStore((state) => state.unseenCount);
+  const fetchUnseenCount = useNotificationStore((state) => state.fetchUnseenCount);
+  const resetUnseenCountLocally = useNotificationStore((state) => state.resetUnseenCountLocally);
+
+  // شمارش اولیه‌ی badge (مثلاً زمان لاگین/اولین لود برنامه).
+  // fetchUnseenCount خودش guard داره، پس با remount شدن هدر روی هر صفحه دوباره صدا زده نمی‌شه.
   useEffect(() => {
-    fetchLogs();
+    fetchUnseenCount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // اتصال زنده به SignalR + نمایش توست برای پیام‌های جدید
+  // اتصال زنده به SignalR: فقط برای toast + صدا + رفرش عدد badge از سرور.
+  // توجه: خود پیام سوکت مستقیماً به لیست یا عدد اضافه نمی‌شه؛ فقط باعث یک fetchUnseenCount(force) جدید می‌شه
+  // تا badge همیشه از API (منبع حقیقت) خونده بشه، نه از محتوای پیام سوکت.
   useEffect(() => {
     connectNotificationSocket().catch(() => {
-      // اتصال زنده برقرار نشد؛ لیست همچنان از طریق فراخوانی API نمایش داده می‌شود
+      // اتصال زنده برقرار نشد؛ badge و لیست همچنان از طریق API قابل دریافت هستن
     });
 
     const unsubscribe = onReceiveNotification((raw) => {
-      addLogFromSocket(raw);
+      playNotificationSound();
 
       const title = typeof raw === 'string' ? raw : (raw as { title?: string })?.title;
 
@@ -35,13 +40,25 @@ export function useNotifications() {
         description: title ?? '',
         meta: { closable: true },
       });
+
+      fetchUnseenCount(true);
     });
 
-    // توجه: عمداً سوکت را قطع نمی‌کنیم، فقط شنونده را لغو می‌کنیم؛
-    // اتصال باید در طول کل عمر برنامه زنده بماند.
     return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { logs, isLoading, error, unseenCount, refetch: fetchLogs, markAllSeenLocally };
+  // با کلیک روی زنگوله صدا زده می‌شه: لیست کامل رو می‌گیره + عدد badge رو محلی صفر می‌کنه
+  const openNotificationPanel = () => {
+    fetchLogs();
+    resetUnseenCountLocally();
+  };
+
+  return {
+    logs,
+    isLoadingLogs,
+    logsError,
+    unseenCount,
+    openNotificationPanel,
+  };
 }

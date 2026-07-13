@@ -18,6 +18,7 @@ import SkillDropdown from "./SkillDropdown";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import { getProfile, updateProfile } from "../../services/profileService";
+import { useProfileStore } from "../../stores/profileStore";
 import { toaster } from "../../utils/toaster";
 
 import {
@@ -62,6 +63,7 @@ const normalizeNeighId = (val: any): number => {
 
   const VolunteerProfileCard = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const setStoredProfile = useProfileStore((state) => state.setProfile);
 
   // JWT Protection: redirect to login if no token
   useEffect(() => {
@@ -351,6 +353,8 @@ const normalizeNeighId = (val: any): number => {
           image: p.picUrl || null,
         });
 
+        setStoredProfile(p);
+
         setProfileFile(null);
         setIsDirty(false);
         setTimeout(() => {
@@ -493,6 +497,7 @@ const normalizeNeighId = (val: any): number => {
 
         setProfileFile(null);
         setIsDirty(false);
+        setStoredProfile(p);
 
         toaster.create({
           title: "موفق",
