@@ -5,6 +5,7 @@ import { LuUserRoundX } from "react-icons/lu";
 import { useProfileStore } from "../../stores/profileStore";
 import { useTaskImage } from "../../hooks/useTaskImage";
 import { disconnectNotificationSocket } from "../../services/notificationSocket";
+import { useNotificationStore } from "../../stores/notificationStore";
 import { brandColors } from "../../theme/tokens";
 import NotificationBell from "./NotificationBell";
 import { useAuth } from "../../contexts/AuthContext";
@@ -17,6 +18,7 @@ const Header = () => {
   const profile = useProfileStore((state) => state.profile);
   const fetchProfile = useProfileStore((state) => state.fetchProfile);
   const resetProfile = useProfileStore((state) => state.resetProfile);
+  const resetNotifications = useNotificationStore((state) => state.resetNotifications);
 
   // profile.picUrl هم مثل picUrl تسک‌ها یک presigned URL از MinIO است که فقط از سمت
   // بک‌اند (نه مستقیم از مرورگر) قابل‌دسترسیه؛ پس باید از همون پروکسی مدیا رد بشه.
@@ -24,6 +26,7 @@ const Header = () => {
 
   const handleLogout = () => {
     disconnectNotificationSocket();
+    resetNotifications();
     resetProfile();
     setOpen(false);
     logout();
@@ -31,7 +34,6 @@ const Header = () => {
   };
 
   useEffect(() => {
-    fetchProfile();
   }, [fetchProfile]);
 
   return (
