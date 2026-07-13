@@ -1,6 +1,12 @@
-import { Avatar, Box, Button, Flex, HStack, IconButton, Image } from "@chakra-ui/react";
+import { Avatar, Box, Button, Flex, HStack, Image, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LuUserRoundX } from "react-icons/lu";
+import { useProfileStore } from "../../stores/profileStore";
+import { useTaskImage } from "../../hooks/useTaskImage";
+import { disconnectNotificationSocket } from "../../services/notificationSocket";
+import { brandColors } from "../../theme/tokens";
+import NotificationBell from "./NotificationBell";
 import { LuBell, LuUserRoundX } from "react-icons/lu";
 import { getProfile } from "../../services/profileService";
 import type { ProfileResponse } from "../../types/profile";
@@ -11,29 +17,23 @@ const Header = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [open, setOpen] = useState(false);
-  const [profile, setProfile] = useState<ProfileResponse["value"] | null>(null);
-  const avatarUrl = profile?.picUrl
-  ? `http://89.42.199.196:5213/api/MediaFiles/StramImg?FileUrl=${encodeURIComponent(profile.picUrl)}`
-  : undefined;
+  const profile = useProfileStore((state) => state.profile);
+  const fetchProfile = useProfileStore((state) => state.fetchProfile);
+
+  // profile.picUrl هم مثل picUrl تسک‌ها یک presigned URL از MinIO است که فقط از سمت
+  // بک‌اند (نه مستقیم از مرورگر) قابل‌دسترسیه؛ پس باید از همون پروکسی مدیا رد بشه.
+  const { imageSrc: avatarSrc } = useTaskImage(profile?.picUrl);
 
   const handleLogout = () => {
+    disconnectNotificationSocket();
     setOpen(false);
     logout();
     navigate("/login", { replace: true });
   };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await getProfile();
-        setProfile(res.value);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   return (
     <Flex
@@ -52,7 +52,7 @@ const Header = () => {
             cursor="pointer"
             onClick={() => setOpen(!open)}
           >
-            <Avatar.Image src={avatarUrl} />
+            <Avatar.Image src={avatarSrc ?? undefined} />
             <Avatar.Fallback
               name={`${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`}
             />
@@ -80,24 +80,21 @@ const Header = () => {
           )}
         </Box>
 
-        <IconButton
-          aria-label="Notifications"
-          variant="plain"
-          size="sm"
-        >
-          <LuBell />
-        </IconButton>
+        <NotificationBell />
       </HStack>
 
-      <Image
-        src="/logo.png"
-        alt="Logo"
-        h="24px"
-        boxSize={8}
-        objectFit="contain"
-        cursor="pointer"
-        onClick={() => navigate("/tasks")}
-      />
+      <HStack gap="2" cursor="pointer" onClick={() => navigate("/tasks")}>
+        <Text fontSize="sm" fontWeight="bold" color={brandColors.primary}>
+          سامانه مدیریت وظایف
+        </Text>
+        <Image
+          src="/logo.png"
+          alt="Logo"
+          h="24px"
+          boxSize={8}
+          objectFit="contain"
+        />
+      </HStack>
     </Flex>
   );
 };

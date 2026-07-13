@@ -37,36 +37,42 @@ const FilterTrigger = ({
       fontSize="sm"
       onClick={onClick}
       _hover={{ bg: isOpen ? accent : 'gray.50' }}
+      position="relative"
     >
+      {selectedCount > 0 && (
+        <Box
+          as="span"
+          position="absolute"
+          top="-6px"
+          left="-4px"
+          minW="20px"
+          h="20px"
+          px="1"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          borderRadius="full"
+          fontSize="xs"
+          fontWeight="bold"
+          bg={
+            accentColor === 'orange'
+              ? '#FED7AA'
+              : brandColors.primaryLight
+          }
+          color={accent}
+          border="2px solid"
+          borderColor={brandColors.surface}
+          zIndex="1"
+        >
+          {toPersianDigits(selectedCount)}
+        </Box>
+      )}
+
       <HStack w="full" justify="space-between" gap="1">
         {isOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
 
         <HStack gap="1" flex="1" justify="center" minW="0">
           <Text lineClamp={1}>{label}</Text>
-          {selectedCount > 0 && (
-            <Box
-              as="span"
-              minW="20px"
-              h="20px"
-              px="1"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              borderRadius="full"
-              fontSize="xs"
-              fontWeight="bold"
-              bg={
-                isOpen
-                  ? 'whiteAlpha.300'
-                  : accentColor === 'orange'
-                    ? '#FED7AA'
-                    : brandColors.primaryLight
-              }
-              color={isOpen ? 'white' : accent}
-            >
-              {toPersianDigits(selectedCount)}
-            </Box>
-          )}
           <Icon size={14} />
         </HStack>
       </HStack>

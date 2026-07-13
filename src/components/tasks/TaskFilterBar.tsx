@@ -6,6 +6,7 @@ import { TASK_STATUS } from '../../types/task';
 import type { FilterOption, FilterType, TaskFilters } from '../../types/task';
 import FilterDropdownPanel from './FilterDropdownPanel';
 import FilterTrigger from './FilterTrigger';
+import { toPersianDigits } from '../../utils/formatters';
 
 interface TaskFilterBarProps {
   filters: TaskFilters;
@@ -21,7 +22,7 @@ interface TaskFilterBarProps {
 
 const STATUS_OPTIONS: FilterOption[] = [
   { value: String(TASK_STATUS.Open), label: 'باز' },
-  { value: String(TASK_STATUS.Assigned), label: 'تخصیص‌یافته' },
+  { value: String(TASK_STATUS.Assigned), label: 'در حال انجام' },
   { value: String(TASK_STATUS.Completed), label: 'تکمیل‌شده' },
 ];
 
@@ -61,7 +62,7 @@ const TaskFilterBar = ({
         panelTitle: 'مهارت‌های من',
         searchPlaceholder: 'جستجوی مهارت...',
         options: skillOptions,
-        footerLabel: (count: number) => `${count} مهارت انتخاب شده`,
+        footerLabel: (count: number) => `${toPersianDigits(count)} مهارت انتخاب شده`,
         showLocationIcon: false,
         showSearch: true,
         selectedValues: filters.skillIds.map(String),
@@ -75,7 +76,7 @@ const TaskFilterBar = ({
         panelTitle: 'مناطق من',
         searchPlaceholder: 'جستجوی محله...',
         options: neighborhoodOptions,
-        footerLabel: (count: number) => `${count} منطقه انتخاب شده`,
+        footerLabel: (count: number) => `${toPersianDigits(count)} منطقه انتخاب شده`,
         showLocationIcon: true,
         showSearch: true,
         selectedValues: filters.neighborhoodIds.map(String),
@@ -89,7 +90,7 @@ const TaskFilterBar = ({
         panelTitle: 'وضعیت وظیفه',
         searchPlaceholder: 'جستجوی وضعیت...',
         options: STATUS_OPTIONS,
-        footerLabel: (count: number) => `${count} وضعیت انتخاب شده`,
+        footerLabel: (count: number) => `${toPersianDigits(count)} وضعیت انتخاب شده`,
         showLocationIcon: false,
         showSearch: false,
         selectedValues: filters.statusIds.map(String),

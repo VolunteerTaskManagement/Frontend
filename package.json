@@ -13,6 +13,7 @@
     "@chakra-ui/react": "^3.35.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@microsoft/signalr": "^10.0.0",
     "@neshan-maps-platform/mapbox-gl-react": "^1.0.8",
     "axios": "^1.8.4",
     "framer-motion": "^12.40.0",
