@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { assignTask } from '../services/taskService';
 import { useTaskStore } from '../stores/taskStore';
-import { extractErrorMessage } from '../utils/Extracterrormessage';
+import { extractErrorMessage, resolveApiMessage } from '../utils/Extracterrormessage';
 
 interface ActionResult {
   success: boolean;
@@ -26,7 +26,7 @@ export function useAssignTask() {
       const res = await assignTask(taskId);
 
       if (!res.isSuccess) {
-        const message = res.message ?? 'ثبت‌نام با خطا مواجه شد.';
+        const message = resolveApiMessage(res, 'ثبت‌نام با خطا مواجه شد.');
         setError(message);
 
         return {
@@ -40,7 +40,7 @@ export function useAssignTask() {
 
       return {
         success: true,
-        message: 'ثبت‌نام شما با موفقیت انجام شد.',
+        message: res.message ?? 'ثبت‌نام شما با موفقیت انجام شد.',
       };
     } catch (err) {
       const message = extractErrorMessage(err, 'ثبت‌نام با خطا مواجه شد.');

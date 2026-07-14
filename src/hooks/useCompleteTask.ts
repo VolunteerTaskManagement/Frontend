@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { completeTask } from '../services/taskService';
 import { useMyTaskStore } from '../stores/myTaskStore';
-import { extractErrorMessage } from '../utils/Extracterrormessage';
+import { extractErrorMessage, resolveApiMessage } from '../utils/Extracterrormessage';
 
 interface ActionResult {
   success: boolean;
@@ -22,7 +22,7 @@ export function useCompleteTask() {
       const res = await completeTask(taskId);
 
       if (!res.isSuccess) {
-        const message = res.message ?? 'ثبت انجام تسک با خطا مواجه شد.';
+        const message = resolveApiMessage(res, 'ثبت انجام تسک با خطا مواجه شد.');
         setError(message);
 
         return {
@@ -35,7 +35,7 @@ export function useCompleteTask() {
 
       return {
         success: true,
-        message: 'وظیفه با موفقیت انجام شد.',
+        message: res.message ?? 'وظیفه با موفقیت انجام شد.',
       };
     } catch (err) {
       const message = extractErrorMessage(err, 'ثبت انجام تسک با خطا مواجه شد.');

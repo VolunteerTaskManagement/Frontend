@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cancelTask } from '../services/taskService';
-import { extractErrorMessage } from '../utils/Extracterrormessage';
+import { extractErrorMessage, resolveApiMessage } from '../utils/Extracterrormessage';
 
 export function useCancelTask() {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,8 +14,9 @@ export function useCancelTask() {
 
       return {
         success: res.isSuccess,
-        message:
-          res.message ?? (res.isSuccess ? 'تسک با موفقیت لغو شد.' : 'لغو تسک با خطا مواجه شد.'),
+        message: res.isSuccess
+          ? res.message ?? 'تسک با موفقیت لغو شد.'
+          : resolveApiMessage(res, 'لغو تسک با خطا مواجه شد.'),
       };
     } catch (err) {
       setIsLoading(false);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { startTask } from '../services/taskService';
-import { extractErrorMessage } from '../utils/Extracterrormessage';
+import { extractErrorMessage, resolveApiMessage } from '../utils/Extracterrormessage';
 
 export function useStartTask() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,8 +13,9 @@ export function useStartTask() {
 
       return {
         success: res.isSuccess,
-        message:
-          res.message ?? (res.isSuccess ? 'تسک با موفقیت شروع شد.' : 'شروع تسک با خطا مواجه شد.'),
+        message: res.isSuccess
+          ? res.message ?? 'تسک با موفقیت شروع شد.'
+          : resolveApiMessage(res, 'شروع تسک با خطا مواجه شد.'),
       };
     } catch (err) {
       setIsLoading(false);
