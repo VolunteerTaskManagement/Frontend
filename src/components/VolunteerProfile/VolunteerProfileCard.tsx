@@ -35,6 +35,7 @@ import {
 
 import { authStorage } from "../../services/authStorage";
 import { toGregorian, toJalaali } from "jalaali-js";
+import { toPersianDigits } from "../../utils/formatters";
 
 const normalizeText = (str?: string | null): string => {
   if (!str) return "";
@@ -750,7 +751,7 @@ const normalizeNeighId = (val: any): number => {
         label="شماره تلفن"
         placeholder="شماره تلفن خود را وارد کنید"
         icon={HiOutlinePhone}
-        value={phoneNumber}
+        value={toPersianDigits(phoneNumber)}
         onChange={setPhoneNumber}
       />
 
