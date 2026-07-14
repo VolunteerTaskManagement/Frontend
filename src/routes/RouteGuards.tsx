@@ -45,7 +45,7 @@ export const PublicOnlyRoute = () => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/tasks" replace />;
   }
 
   return <Outlet />;
