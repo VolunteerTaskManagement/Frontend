@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { confirmTaskCompletion } from '../services/taskService';
-import { extractErrorMessage } from '../utils/Extracterrormessage';
+import { extractErrorMessage, resolveApiMessage } from '../utils/Extracterrormessage';
 
 export function useConfirmTaskCompletion() {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,9 +14,9 @@ export function useConfirmTaskCompletion() {
 
       return {
         success: res.isSuccess,
-        message:
-          res.message ??
-          (res.isSuccess ? 'پایان تسک با موفقیت ثبت شد.' : 'ثبت پایان تسک با خطا مواجه شد.'),
+        message: res.isSuccess
+          ? res.message ?? 'پایان تسک با موفقیت ثبت شد.'
+          : resolveApiMessage(res, 'ثبت پایان تسک با خطا مواجه شد.'),
       };
     } catch (err) {
       setIsLoading(false);

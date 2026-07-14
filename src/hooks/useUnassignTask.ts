@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { unassignTask } from '../services/taskService';
 import { useMyTaskStore } from '../stores/myTaskStore';
-import { extractErrorMessage } from '../utils/Extracterrormessage';
+import { extractErrorMessage, resolveApiMessage } from '../utils/Extracterrormessage';
 
 interface ActionResult {
   success: boolean;
@@ -22,7 +22,7 @@ export function useUnassignTask() {
       const res = await unassignTask(taskId);
 
       if (!res.isSuccess) {
-        const message = res.message ?? 'کناره‌گیری با خطا مواجه شد.';
+        const message = resolveApiMessage(res, 'کناره‌گیری با خطا مواجه شد.');
         setError(message);
 
         return {
@@ -35,7 +35,7 @@ export function useUnassignTask() {
 
       return {
         success: true,
-        message: 'با موفقیت از وظیفه کناره‌گیری کردید.',
+        message: res.message ?? 'با موفقیت از وظیفه کناره‌گیری کردید.',
       };
     } catch (err) {
       const message = extractErrorMessage(err, 'کناره‌گیری با خطا مواجه شد.');
