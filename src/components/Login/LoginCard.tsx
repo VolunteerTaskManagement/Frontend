@@ -10,11 +10,13 @@ import InputBox from "../common/Inputbox";
 import PasswordBox from "../common/PasswordBox";
 import MainButton from "../common/MainButton";
 import { FiUser } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import {
+  Link as RouterLink,
+  useNavigate,
+} from "react-router-dom";
 import { login } from "../../services/auth.service";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTaskFiltersStore } from "../../stores/taskFiltersStore";
-import { useNotificationStore } from "../../stores/notificationStore";
 import { toaster } from "../../utils/toaster";
 import logo from "../../assets/images/logo.svg"
 
@@ -25,7 +27,6 @@ const LoginCard = () => {
   const { loginUser } = useAuth();
   const navigate = useNavigate();
   const initFromProfile = useTaskFiltersStore((state) => state.initFromProfile);
-  const fetchUnseenCount = useNotificationStore((state) => state.fetchUnseenCount);
   
   const handleLogin = async () => {
     if (!username || !password) {
@@ -56,15 +57,14 @@ const LoginCard = () => {
       );
       
       initFromProfile(res.value.skills ?? [], res.value.neighborhoodId ?? null);
-      fetchUnseenCount(true);
-
+      
       toaster.create({
         title: "ورود موفق",
         description: "با موفقیت وارد شدید",
         type: "success",
       });
 
-      navigate("/");
+      navigate("/tasks");
     } catch (err: any) {
       console.log("login error", err);
       toaster.create({
@@ -135,6 +135,18 @@ const LoginCard = () => {
           href="/signup"
         >
           ثبت نام کنید
+        </Link>
+
+        <Link
+          asChild
+          color="orange.500"
+          fontWeight="bold"
+          _hover={{ textDecoration: "underline" }}
+          textAlign="center"
+        >
+          <RouterLink to="/forgot-password">
+            رمز عبور خود را فراموش کرده‌اید؟
+          </RouterLink>
         </Link>
       </VStack>
     </VStack>
