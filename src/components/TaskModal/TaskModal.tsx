@@ -13,9 +13,10 @@ import {
   Field,
   Wrap,
   WrapItem,
+  Image,
 } from "@chakra-ui/react";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { LuUpload, LuX } from "react-icons/lu";
 import { toGregorian } from "jalaali-js";
 import Dropdown from "../common/Dropdown";
@@ -24,21 +25,40 @@ import Calendar from "../VolunteerProfile/Calender";
 import NeshanMap from "../common/Map";
 import { toaster } from "../../utils/toaster";
 import { toEnglishDigits, toPersianDigits } from "../../utils/formatters";
+import { useTaskImage } from "../../hooks/useTaskImage";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import SkillDropdown from "../VolunteerProfile/SkillDropdown";
 import { createTask } from "../../services/createTaskService";
+import { updateTask } from "../../services/updateTaskService";
 import { ReverseGeocode } from "../../services/reverseGeocodingService";
 import type { MapLocation } from "../../types/map";
 
 
-interface CreateTaskProbs {
+interface TaskModalProps {
   open: boolean;
   onClose: () => void;
-  onTaskCreated: () => void;
+  onSuccess: () => void;
+  mode: "create" | "edit";
+  initialData?: TaskFormData;
 }
 
-export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTaskProbs)
+interface TaskFormData {
+  id: number;
+  picUrl?: string;
+  title: string;
+  description: string;
+  startDateFa: string;
+  neighborhoodTitle: string;
+  address: string;
+  skills: number[];
+  skillTitles: string[];
+  count: number;
+  lat: number;
+  lng: number;
+}
+
+export default function TaskModal({open, onClose, onSuccess, mode, initialData}: TaskModalProps)
 {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -52,10 +72,12 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
   const [skillOptions, setSkillOptions] = useState< {label: string; value: string}[] >([]);
   const [image, setImage] = useState<File | null>(null);
   const [location, setLocation] = useState<MapLocation | null>(null);
-  const [zoom, setZoom] = useState(10);
+  const [zoom, setZoom] = useState(9);
+  const [imageRemoved, setImageRemoved] = useState(false);
+  const { imageSrc } = useTaskImage(initialData?.picUrl);
 
   const handleSubmit = async () => {
-    if (!image) {
+    if (mode === "create" && !image) {
       toaster.create({
         type: "warning",
         title: "عکس فعالیت را انتخاب کنید.",
@@ -133,31 +155,51 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
       toaster.create({
         id: "create-task",
         type: "loading",
-        title: "در حال ایجاد فعالیت...",
+        title: mode === "create" ? "در حال ایجاد فعالیت..." : "در حال ویرایش فعالیت..."
       });
 
-      const response = await createTask({
-        pic: image,
-        title,
-        description,
-        neighborhoodId: Number(neighborhood),
-        address,
-        startDate: calendarToIso(startDate),
-        count: Number(toEnglishDigits(peopleCount)),
-        skills: skillIds,
-        lat: location.lat,
-        lng: location.lng,
-      });
+      let response;
+      if (mode === "create") {
+        response = await createTask({
+          pic: image!,
+          title,
+          description,
+          startDate: calendarToIso(startDate),
+          neighborhoodId: Number(neighborhood),
+          address,
+          skills: skillIds,
+          count: Number(toEnglishDigits(peopleCount)),
+          lat: location.lat,
+          lng: location.lng,
+        });
+      }
+      else {
+        if (!initialData) return;
+
+        response = await updateTask({
+          id: initialData.id,
+          pic: image!,
+          title,
+          description,
+          startDate: calendarToIso(startDate),
+          neighborhoodId: Number(neighborhood),
+          address,
+          skills: skillIds,
+          count: Number(toEnglishDigits(peopleCount)),
+          lat: location.lat,
+          lng: location.lng,
+        });
+      }
 
       toaster.dismiss("create-task");
       if (response.isSuccess) {
         toaster.create({
           type: "success",
           title: "موفق",
-          description: "فعالیت با موفقیت ایجاد شد"
+          description: mode === "create" ? "فعالیت با موفقیت ایجاد شد" : "فعالیت با موفقیت ویرایش شد"
         });
 
-        onTaskCreated();
+        onSuccess();
         setTimeout(() => {handleClose()}, 700);
       }
       else {
@@ -187,7 +229,9 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
   };
 
   const handleClose = () => {
-    resetForm();
+    if (mode === "create")
+      resetForm();
+
     onClose();
   };
 
@@ -206,20 +250,18 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
   };
 
   const handleNeighborhoodSearch = useCallback(async (text: string) => {
-    try {
-      const res = await searchNeighborhoods(text);
+    const res = await searchNeighborhoods(text);
 
-      if (res.isSuccess) {
-        setNeighborhoodOptions(
-          res.value.map((item) => ({
-            label: item.title,
-            value: item.id.toString(),
-          }))
-        );
-      }
-    } catch (err) {
-      console.log(err);
-    }
+    if (!res.isSuccess) return [];
+
+    const options = res.value.map(item => ({
+      label: item.title,
+      value: item.id.toString(),
+    }));
+
+    setNeighborhoodOptions(options);
+
+    return options;
   }, []);
 
   const handleSkillSearch = useCallback(async (text: string) => {
@@ -279,12 +321,54 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
     );
   };
 
-  useEffect(() => {
-    if (open) {
-      handleNeighborhoodSearch("");
-      handleSkillSearch("");
+  const previewUrl = useMemo(() => {
+    if (image) {
+      return URL.createObjectURL(image);
     }
-  }, [open]);
+
+    if (imageRemoved) {
+      return null;
+    }
+
+    return imageSrc;
+  }, [image, imageSrc, imageRemoved]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const initialize = async () => {
+      setImageRemoved(false);
+      await handleSkillSearch("");
+      const options = await handleNeighborhoodSearch("");
+
+      if (mode === "create") {
+        resetForm();
+        return;
+      }
+
+      if (!initialData) return;
+
+      const selectedNeighborhood = options.find(
+        x => x.label.startsWith(initialData.neighborhoodTitle)
+      );
+
+      setTitle(initialData.title);
+      setDescription(initialData.description);
+      setStartDate(initialData.startDateFa);
+      setNeighborhood(selectedNeighborhood?.value ?? "");
+      setAddress(initialData.address);
+      setSkillIds(initialData.skills);
+      setSelectedSkills(initialData.skillTitles);
+      setPeopleCount(initialData.count.toString());
+      setLocation({
+        lat: initialData.lat,
+        lng: initialData.lng,
+      });
+      setZoom(15);
+    };
+
+    initialize();
+  }, [open, mode, initialData, handleNeighborhoodSearch, handleSkillSearch]);
 
   return (
     <Dialog.Root
@@ -314,7 +398,7 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
                 fontSize="20px"
                 fontWeight="bold"
               >
-                افزودن فعالیت جدید
+                {mode === "create" ? "افزودن فعالیت جدید" : "ویرایش فعالیت"}
               </Dialog.Title>
 
               <Dialog.CloseTrigger asChild>
@@ -338,54 +422,82 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
                     عکس فعالیت
                   </Text>
 
-                  <FileUpload.Root
-                    alignItems="stretch"
-                    maxFiles={1}
-                    maxFileSize={2 * 1024 * 1024}
-                    onFileReject={() => {
-                      toaster.create({
-                        type: "warning",
-                        title: "فایل وارد شده قابل پذیرش نیست.",
-                        description: "حداکثر حجم فایل ۲ مگابایت است.\nفرمت مورد پذیرش JPG و PNG میباشد.",
-                        meta: { closable: true },
-                      });
-                    }}
-                    accept={["image/png", "image/jpeg"]}
-                    onFileAccept={(details) => {
-                      const file = details.files[0];
-                      if (file)
-                        setImage(file);
-                    }}
-                  >
-                    <FileUpload.HiddenInput />
-                    <FileUpload.Dropzone
-                      minH="200px"
-                      border="2px dashed"
-                      borderColor="gray.200"
-                      borderRadius="12px"
-                      cursor="pointer"
-                      transition="0.2s"
-                      _hover={{
-                        borderColor: "teal.500",
-                        bg: "gray.50",
+                  {previewUrl ? (
+                    <Box position="relative">
+                      <Image
+                        src={previewUrl}
+                        w="full"
+                        h="200px"
+                        borderRadius="16px"
+                        objectFit="cover"
+                        display="block"
+                      />
+
+                      <IconButton
+                        aria-label="remove image"
+                        size="2xs"
+                        borderRadius="full"
+                        colorPalette="red"
+                        position="absolute"
+                        top="-2"
+                        right="-2"
+                        onClick={() => {
+                          setImage(null);
+                          setImageRemoved(true);
+                        }}
+                      >
+                        <LuX />
+                      </IconButton>
+                    </Box>
+                  ) : (
+                    <FileUpload.Root
+                      alignItems="stretch"
+                      maxFiles={1}
+                      maxFileSize={2 * 1024 * 1024}
+                      onFileReject={() => {
+                        toaster.create({
+                          type: "warning",
+                          title: "فایل وارد شده قابل پذیرش نیست.",
+                          description: "حداکثر حجم فایل ۲ مگابایت است.\nفرمت مورد پذیرش JPG و PNG میباشد.",
+                          meta: { closable: true },
+                        });
+                      }}
+                      accept={["image/png", "image/jpeg"]}
+                      onFileAccept={(details) => {
+                        const file = details.files[0];
+                        if (file)
+                          setImage(file);
                       }}
                     >
-                      <VStack gap="2">
-                        <Box bg="teal.50" p="4" borderRadius="full">
-                          <Icon as={LuUpload} boxSize={7} color="teal.600" />
-                        </Box>
+                      <FileUpload.HiddenInput />
+                      <FileUpload.Dropzone
+                        minH="200px"
+                        border="2px dashed"
+                        borderColor="gray.200"
+                        borderRadius="12px"
+                        cursor="pointer"
+                        transition="0.2s"
+                        _hover={{
+                          borderColor: "teal.500",
+                          bg: "gray.50",
+                        }}
+                      >
+                        <VStack gap="2">
+                          <Box bg="teal.50" p="4" borderRadius="full">
+                            <Icon as={LuUpload} boxSize={7} color="teal.600" />
+                          </Box>
 
-                        <Text fontWeight="bold">
-                          برای آپلود عکس کلیک کنید
-                        </Text>
+                          <Text fontWeight="bold">
+                            برای آپلود عکس کلیک کنید
+                          </Text>
 
-                        <Text fontSize="xs" color="gray.500" >
-                          JPG, PNG حداکثر ۲ مگابایت با فرمت
-                        </Text>
-                      </VStack>
-                    </FileUpload.Dropzone>
-                    <FileUpload.List clearable />
-                  </FileUpload.Root>
+                          <Text fontSize="xs" color="gray.500" >
+                            JPG, PNG حداکثر ۲ مگابایت با فرمت
+                          </Text>
+                        </VStack>
+                      </FileUpload.Dropzone>
+                    </FileUpload.Root>
+                  )}
                 </Box>
 
                 {/* Title */}
@@ -555,7 +667,7 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
                 }}
                 onClick={handleSubmit}
               >
-                ذخیره فعالیت
+                {mode === "create" ? "ایجاد فعالیت" : "ویرایش فعالیت"}
               </Button>
 
               <Button w="full" borderRadius="8px" variant="ghost" onClick={handleClose}>

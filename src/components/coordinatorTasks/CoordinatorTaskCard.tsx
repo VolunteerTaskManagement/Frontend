@@ -14,7 +14,6 @@ import {
   FiUsers,
   FiXCircle,
 } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
 import { useCancelTask } from '../../hooks/useCancelTask';
 import { useConfirmTaskCompletion } from '../../hooks/useConfirmTaskCompletion';
 import { useStartTask } from '../../hooks/usestarttask';
@@ -31,14 +30,14 @@ interface CoordinatorTaskCardProps {
   task: TaskListItem;
   activeTab: CoordinatorTaskTab;
   onRemove: (id: number) => void;
+  onEdit: (task: TaskListItem) => void;
 }
 
 interface ConfirmState {
   type: 'cancel' | 'complete' | null;
 }
 
-const CoordinatorTaskCard = ({ task, activeTab, onRemove }: CoordinatorTaskCardProps) => {
-  const navigate = useNavigate();
+const CoordinatorTaskCard = ({ task, activeTab, onRemove, onEdit }: CoordinatorTaskCardProps) => {
   const { imageSrc } = useTaskImage(task.picUrl);
   const { cancel, isLoading: isCancelling } = useCancelTask();
   const { confirmCompletion, isLoading: isConfirming } = useConfirmTaskCompletion();
@@ -73,8 +72,7 @@ const CoordinatorTaskCard = ({ task, activeTab, onRemove }: CoordinatorTaskCardP
 
   const goToEdit = (e: MouseEvent) => {
     e.stopPropagation();
-    // صفحه‌ی ویرایش هنوز ساخته نشده — فقط مسیر وصل شده تا بعداً پیاده‌سازی شود
-    navigate(`/tasks/edit/${task.id}`);
+    onEdit(task);
   };
 
   // شروع تسک نیازی به دیالوگ تایید ندارد؛ بلافاصله انجام می‌شود

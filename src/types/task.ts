@@ -57,6 +57,8 @@ export interface TaskListItem {
   isConfirmedByVolunteer: boolean;
   status: number;
   statusTitle: string;
+  lat: number;
+  lng: number;
 }
 
 // ---- Task detail: GET /api/Tasks/{id} ----
