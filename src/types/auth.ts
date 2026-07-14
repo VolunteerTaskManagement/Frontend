@@ -34,3 +34,30 @@ export interface RegisterResponse {
     message: string;
   };
 }
+
+export interface ForgotPasswordResponse {
+  value: boolean;
+  isSuccess: boolean;
+  isFailure: boolean;
+  message: string | null;
+  error: {
+    code: string;
+    message: string;
+  } | null;
+}
+
+export interface ChangeForgotPasswordRequest {
+  userName: string;
+  newPassword: string;
+  confirmedNewPassword: string;
+}
+
+export interface ChangeForgotPasswordResponse {
+  isSuccess: boolean;
+  isFailure: boolean;
+  message: string | null;
+  error: {
+    code: string;
+    message: string;
+  } | null;
+}
