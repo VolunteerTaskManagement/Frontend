@@ -6,9 +6,13 @@ import { brandColors } from "../../theme/tokens";
 import { toPersianDigits } from "../../utils/formatters";
 import CoordinatorTaskList from "./CoordinatorTaskList";
 import CoordinatorTaskTabs from "./CoordinatorTaskTabs";
-import CreateTaskModal from "../CreateTask/CreateTaskModal";
+import TaskModal from "../TaskModal/TaskModal";
+import type { TaskListItem } from "../../types/task";
+
 const CoordinatorTasksContent = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TaskListItem | undefined>(undefined);
 
   const {
     tasks,
@@ -30,6 +34,11 @@ const CoordinatorTasksContent = () => {
     } else {
       setActiveTab("open");
     }
+  };
+
+  const handleEdit = (task: TaskListItem) => {
+    setSelectedTask(task);
+    setIsEditModalOpen(true);
   };
 
   return (
@@ -105,15 +114,24 @@ const CoordinatorTasksContent = () => {
               hasNextPage={hasNextPage}
               onLoadMore={loadMore}
               onRemoveTask={removeTaskLocally}
+              onEditTask={handleEdit}
             />
           )}
         </Box>
       </VStack>
 
-      <CreateTaskModal
+      <TaskModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onTaskCreated={handleTaskCreated}
+        onSuccess={handleTaskCreated}
+        mode="create"
+      />
+      <TaskModal
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={handleTaskCreated}
+        mode="edit"
+        initialData={selectedTask}
       />
     </>
   );

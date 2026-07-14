@@ -13,6 +13,7 @@ interface CoordinatorTaskListProps {
   hasNextPage: boolean;
   onLoadMore: () => void;
   onRemoveTask: (id: number) => void;
+  onEditTask: (task: TaskListItem) => void;
 }
 
 const CoordinatorTaskList = ({
@@ -23,6 +24,7 @@ const CoordinatorTaskList = ({
   hasNextPage,
   onLoadMore,
   onRemoveTask,
+  onEditTask
 }: CoordinatorTaskListProps) => {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -71,7 +73,7 @@ const CoordinatorTaskList = ({
   return (
     <VStack align="stretch" gap="4">
       {tasks.map((task) => (
-        <CoordinatorTaskCard key={task.id} task={task} activeTab={activeTab} onRemove={onRemoveTask} />
+        <CoordinatorTaskCard key={task.id} task={task} activeTab={activeTab} onRemove={onRemoveTask} onEdit={onEditTask} />
       ))}
 
       {hasNextPage && (

@@ -13,6 +13,7 @@ import {
   Field,
   Wrap,
   WrapItem,
+  Image,
 } from "@chakra-ui/react";
 
 import { useState, useEffect, useCallback } from "react";
@@ -24,20 +25,39 @@ import Calendar from "../VolunteerProfile/Calender";
 import NeshanMap from "../common/Map";
 import { toaster } from "../../utils/toaster";
 import { toEnglishDigits, toPersianDigits } from "../../utils/formatters";
+import { useTaskImage } from "../../hooks/useTaskImage";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
 import { createTask } from "../../services/createTaskService";
+import { updateTask } from "../../services/updateTaskService";
 import { ReverseGeocode } from "../../services/reverseGeocodingService";
 import type { MapLocation } from "../../types/map";
 
 
-interface CreateTaskProbs {
+interface TaskModalProps {
   open: boolean;
   onClose: () => void;
-  onTaskCreated: () => void;
+  onSuccess: () => void;
+  mode: "create" | "edit";
+  initialData?: TaskFormData;
 }
 
-export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTaskProbs)
+interface TaskFormData {
+  id: number;
+  picUrl?: string;
+  title: string;
+  description: string;
+  startDateFa: string;
+  neighborhoodTitle: string;
+  address: string;
+  skills: number[];
+  skillTitles: string[];
+  count: number;
+  lat: number;
+  lng: number;
+}
+
+export default function TaskModal({open, onClose, onSuccess, mode, initialData}: TaskModalProps)
 {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -52,9 +72,10 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
   const [image, setImage] = useState<File | null>(null);
   const [location, setLocation] = useState<MapLocation | null>(null);
   const [zoom, setZoom] = useState(10);
+  const { imageSrc } = useTaskImage(initialData?.picUrl);
 
   const handleSubmit = async () => {
-    if (!image) {
+    if (mode === "create" && !image) {
       toaster.create({
         type: "warning",
         title: "عکس فعالیت را انتخاب کنید.",
@@ -132,31 +153,51 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
       toaster.create({
         id: "create-task",
         type: "loading",
-        title: "در حال ایجاد فعالیت...",
+        title: mode === "create" ? "در حال ایجاد فعالیت..." : "در حال ویرایش فعالیت..."
       });
 
-      const response = await createTask({
-        pic: image,
-        title,
-        description,
-        neighborhoodId: Number(neighborhood),
-        address,
-        startDate: calendarToIso(startDate),
-        count: Number(toEnglishDigits(peopleCount)),
-        skills: skillIds,
-        lat: location.lat,
-        lng: location.lng,
-      });
+      let response;
+      if (mode === "create") {
+        response = await createTask({
+          pic: image!,
+          title,
+          description,
+          startDate: calendarToIso(startDate),
+          neighborhoodId: Number(neighborhood),
+          address,
+          skills: skillIds,
+          count: Number(toEnglishDigits(peopleCount)),
+          lat: location.lat,
+          lng: location.lng,
+        });
+      }
+      else {
+        if (!initialData) return;
+
+        response = await updateTask({
+          id: initialData.id,
+          pic: image!,
+          title,
+          description,
+          startDate: calendarToIso(startDate),
+          neighborhoodId: Number(neighborhood),
+          address,
+          skills: skillIds,
+          count: Number(toEnglishDigits(peopleCount)),
+          lat: location.lat,
+          lng: location.lng,
+        });
+      }
 
       toaster.dismiss("create-task");
       if (response.isSuccess) {
         toaster.create({
           type: "success",
           title: "موفق",
-          description: "فعالیت با موفقیت ایجاد شد"
+          description: mode === "create" ? "فعالیت با موفقیت ایجاد شد" : "فعالیت با موفقیت ویرایش شد"
         });
 
-        onTaskCreated();
+        onSuccess();
         setTimeout(() => {handleClose()}, 700);
       }
       else {
@@ -186,7 +227,9 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
   };
 
   const handleClose = () => {
-    resetForm();
+    if (mode === "create")
+      resetForm();
+
     onClose();
   };
 
@@ -205,20 +248,18 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
   };
 
   const handleNeighborhoodSearch = useCallback(async (text: string) => {
-    try {
-      const res = await searchNeighborhoods(text);
+    const res = await searchNeighborhoods(text);
 
-      if (res.isSuccess) {
-        setNeighborhoodOptions(
-          res.value.map((item) => ({
-            label: item.title,
-            value: item.id.toString(),
-          }))
-        );
-      }
-    } catch (err) {
-      console.log(err);
-    }
+    if (!res.isSuccess) return [];
+
+    const options = res.value.map(item => ({
+      label: item.title,
+      value: item.id.toString(),
+    }));
+
+    setNeighborhoodOptions(options);
+
+    return options;
   }, []);
 
   const handleSkillSearch = useCallback(async (text: string) => {
@@ -279,11 +320,40 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
   };
 
   useEffect(() => {
-    if (open) {
-      handleNeighborhoodSearch("");
-      handleSkillSearch("");
-    }
-  }, [open]);
+    if (!open) return;
+
+    const initialize = async () => {
+      await handleSkillSearch("");
+      const options = await handleNeighborhoodSearch("");
+
+      if (mode === "create") {
+        resetForm();
+        return;
+      }
+
+      if (!initialData) return;
+
+      const selectedNeighborhood = options.find(
+        x => x.label.startsWith(initialData.neighborhoodTitle)
+      );
+
+      setTitle(initialData.title);
+      setDescription(initialData.description);
+      setStartDate(initialData.startDateFa);
+      setNeighborhood(selectedNeighborhood?.value ?? "");
+      setAddress(initialData.address);
+      setSkillIds(initialData.skills);
+      setSelectedSkills(initialData.skillTitles);
+      setPeopleCount(initialData.count.toString());
+      setLocation({
+        lat: initialData.lat,
+        lng: initialData.lng,
+      });
+      setZoom(15);
+    };
+
+    initialize();
+  }, [open, mode, initialData, handleNeighborhoodSearch, handleSkillSearch]);
 
   return (
     <Dialog.Root
@@ -313,7 +383,7 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
                 fontSize="20px"
                 fontWeight="bold"
               >
-                افزودن فعالیت جدید
+                {mode === "create" ? "افزودن فعالیت جدید" : "ویرایش فعالیت"}
               </Dialog.Title>
 
               <Dialog.CloseTrigger asChild>
@@ -336,7 +406,9 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
                   <Text mb="2" fontWeight="bold" textAlign="right" pr="8px">
                     عکس فعالیت
                   </Text>
-
+                  {mode === "edit" && imageSrc && !image ? (
+                    <Image src={imageSrc} w="full" h="full" />
+                  ) : (
                   <FileUpload.Root
                     alignItems="stretch"
                     maxFiles={1}
@@ -385,6 +457,7 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
                     </FileUpload.Dropzone>
                     <FileUpload.List clearable />
                   </FileUpload.Root>
+                  )}
                 </Box>
 
                 {/* Title */}
@@ -554,7 +627,7 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
                 }}
                 onClick={handleSubmit}
               >
-                ذخیره فعالیت
+                {mode === "create" ? "ایجاد فعالیت" : "ویرایش فعالیت"}
               </Button>
 
               <Button w="full" borderRadius="8px" variant="ghost" onClick={handleClose}>
