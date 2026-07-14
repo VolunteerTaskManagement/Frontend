@@ -16,7 +16,7 @@ import {
   Image,
 } from "@chakra-ui/react";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { LuUpload, LuX } from "react-icons/lu";
 import { toGregorian } from "jalaali-js";
 import Dropdown from "../common/Dropdown";
@@ -71,7 +71,8 @@ export default function TaskModal({open, onClose, onSuccess, mode, initialData}:
   const [skillOptions, setSkillOptions] = useState< {label: string; value: string}[] >([]);
   const [image, setImage] = useState<File | null>(null);
   const [location, setLocation] = useState<MapLocation | null>(null);
-  const [zoom, setZoom] = useState(10);
+  const [zoom, setZoom] = useState(9);
+  const [imageRemoved, setImageRemoved] = useState(false);
   const { imageSrc } = useTaskImage(initialData?.picUrl);
 
   const handleSubmit = async () => {
@@ -319,10 +320,23 @@ export default function TaskModal({open, onClose, onSuccess, mode, initialData}:
     );
   };
 
+  const previewUrl = useMemo(() => {
+    if (image) {
+      return URL.createObjectURL(image);
+    }
+
+    if (imageRemoved) {
+      return null;
+    }
+
+    return imageSrc;
+  }, [image, imageSrc, imageRemoved]);
+
   useEffect(() => {
     if (!open) return;
 
     const initialize = async () => {
+      setImageRemoved(false);
       await handleSkillSearch("");
       const options = await handleNeighborhoodSearch("");
 
@@ -406,57 +420,82 @@ export default function TaskModal({open, onClose, onSuccess, mode, initialData}:
                   <Text mb="2" fontWeight="bold" textAlign="right" pr="8px">
                     عکس فعالیت
                   </Text>
-                  {mode === "edit" && imageSrc && !image ? (
-                    <Image src={imageSrc} w="full" h="full" />
+
+                  {previewUrl ? (
+                    <Box position="relative">
+                      <Image
+                        src={previewUrl}
+                        w="full"
+                        h="200px"
+                        borderRadius="16px"
+                        objectFit="cover"
+                        display="block"
+                      />
+
+                      <IconButton
+                        aria-label="remove image"
+                        size="2xs"
+                        borderRadius="full"
+                        colorPalette="red"
+                        position="absolute"
+                        top="-2"
+                        right="-2"
+                        onClick={() => {
+                          setImage(null);
+                          setImageRemoved(true);
+                        }}
+                      >
+                        <LuX />
+                      </IconButton>
+                    </Box>
                   ) : (
-                  <FileUpload.Root
-                    alignItems="stretch"
-                    maxFiles={1}
-                    maxFileSize={2 * 1024 * 1024}
-                    onFileReject={() => {
-                      toaster.create({
-                        type: "warning",
-                        title: "فایل وارد شده قابل پذیرش نیست.",
-                        description: "حداکثر حجم فایل ۲ مگابایت است.\nفرمت مورد پذیرش JPG و PNG میباشد.",
-                        meta: { closable: true },
-                      });
-                    }}
-                    accept={["image/png", "image/jpeg"]}
-                    onFileAccept={(details) => {
-                      const file = details.files[0];
-                      if (file)
-                        setImage(file);
-                    }}
-                  >
-                    <FileUpload.HiddenInput />
-                    <FileUpload.Dropzone
-                      minH="200px"
-                      border="2px dashed"
-                      borderColor="gray.200"
-                      borderRadius="12px"
-                      cursor="pointer"
-                      transition="0.2s"
-                      _hover={{
-                        borderColor: "teal.500",
-                        bg: "gray.50",
+                    <FileUpload.Root
+                      alignItems="stretch"
+                      maxFiles={1}
+                      maxFileSize={2 * 1024 * 1024}
+                      onFileReject={() => {
+                        toaster.create({
+                          type: "warning",
+                          title: "فایل وارد شده قابل پذیرش نیست.",
+                          description: "حداکثر حجم فایل ۲ مگابایت است.\nفرمت مورد پذیرش JPG و PNG میباشد.",
+                          meta: { closable: true },
+                        });
+                      }}
+                      accept={["image/png", "image/jpeg"]}
+                      onFileAccept={(details) => {
+                        const file = details.files[0];
+                        if (file)
+                          setImage(file);
                       }}
                     >
-                      <VStack gap="2">
-                        <Box bg="teal.50" p="4" borderRadius="full">
-                          <Icon as={LuUpload} boxSize={7} color="teal.600" />
-                        </Box>
+                      <FileUpload.HiddenInput />
+                      <FileUpload.Dropzone
+                        minH="200px"
+                        border="2px dashed"
+                        borderColor="gray.200"
+                        borderRadius="12px"
+                        cursor="pointer"
+                        transition="0.2s"
+                        _hover={{
+                          borderColor: "teal.500",
+                          bg: "gray.50",
+                        }}
+                      >
+                        <VStack gap="2">
+                          <Box bg="teal.50" p="4" borderRadius="full">
+                            <Icon as={LuUpload} boxSize={7} color="teal.600" />
+                          </Box>
 
-                        <Text fontWeight="bold">
-                          برای آپلود عکس کلیک کنید
-                        </Text>
+                          <Text fontWeight="bold">
+                            برای آپلود عکس کلیک کنید
+                          </Text>
 
-                        <Text fontSize="xs" color="gray.500" >
-                          JPG, PNG حداکثر ۲ مگابایت با فرمت
-                        </Text>
-                      </VStack>
-                    </FileUpload.Dropzone>
-                    <FileUpload.List clearable />
-                  </FileUpload.Root>
+                          <Text fontSize="xs" color="gray.500" >
+                            JPG, PNG حداکثر ۲ مگابایت با فرمت
+                          </Text>
+                        </VStack>
+                      </FileUpload.Dropzone>
+                    </FileUpload.Root>
                   )}
                 </Box>
 
