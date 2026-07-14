@@ -26,6 +26,7 @@ import { toaster } from "../../utils/toaster";
 import { toEnglishDigits, toPersianDigits } from "../../utils/formatters";
 import { searchNeighborhoods } from "../../services/neighborhood";
 import { getSkills } from "../../services/skillsDropdown";
+import SkillDropdown from "../VolunteerProfile/SkillDropdown";
 import { createTask } from "../../services/createTaskService";
 import { ReverseGeocode } from "../../services/reverseGeocodingService";
 import type { MapLocation } from "../../types/map";
@@ -479,12 +480,12 @@ export default function CreateTaskModal({open, onClose, onTaskCreated}: CreateTa
                 />
 
                 {/* Skills */}
-                <Dropdown
+                <SkillDropdown
                   label="مهارت ها"
-                  placeholder="می‌توانید چند مهارت انتخاب کنید"
+                  placeholder=" مهارت های خود را انتخاب کنید"
                   options={skillOptions}
-                  onChange={addSkill}
                   onSearch={handleSkillSearch}
+                  onChange={addSkill}
                 />
                 {selectedSkills.length > 0 && (
                   <Wrap px="4" gap="2">
