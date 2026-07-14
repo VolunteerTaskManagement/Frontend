@@ -20,8 +20,6 @@ const Calendar = ({ label, value, onChange, futureOnly=false }: Props) => {
   });
   const parts = formatter.formatToParts(new Date());
   const currentYear = Number(toEnglishDigits(parts.find(p => p.type === "year")!.value));
-  const currentMonth = Number(toEnglishDigits(parts.find(p => p.type === "month")!.value));
-  const currentDay = Number(toEnglishDigits(parts.find(p => p.type === "day")!.value));
 
   const years = futureOnly
     ? Array.from({ length: 10 }, (_, i) => currentYear + i)
@@ -43,14 +41,7 @@ const Calendar = ({ label, value, onChange, futureOnly=false }: Props) => {
 
   const faNumber = new Intl.NumberFormat("fa-IR", { useGrouping: false });
 
-  const dayOptions = days.filter((d) => {
-    if (!futureOnly) return true;
-    if (!year || !month) return true;
-    if (Number(year) > currentYear) return true;
-    if (Number(month) > currentMonth) return true;
-    return d >= currentDay;
-  })
-  .map((d) => ({
+  const dayOptions = days.map((d) => ({
     label: faNumber.format(d),
     value: String(d),
   }));
@@ -69,12 +60,7 @@ const Calendar = ({ label, value, onChange, futureOnly=false }: Props) => {
     { label: "بهمن", value: "11" },
     { label: "اسفند", value: "12" },
   ];
-  const monthOptions = allMonths.filter((m) => {
-    if (!futureOnly) return true;
-    if (!year) return true;
-    if (Number(year) > currentYear) return true;
-    return Number(m.value) >= currentMonth;
-  });
+  const monthOptions = allMonths;
 
   const yearOptions = years.map((y) => ({
     label: faNumber.format(y),
