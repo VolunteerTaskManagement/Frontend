@@ -1,5 +1,6 @@
 import { HStack, Text } from '@chakra-ui/react';
 import { FiSliders } from 'react-icons/fi';
+import { selectHasActiveFilters, useTaskFiltersStore } from '../../stores/taskFiltersStore';
 import { brandColors } from '../../theme/tokens';
 import { toPersianDigits } from '../../utils/formatters';
 
@@ -8,12 +9,26 @@ interface TaskResultsBarProps {
 }
 
 const TaskResultsBar = ({ count }: TaskResultsBarProps) => {
+  const resetFilters = useTaskFiltersStore((state) => state.resetFilters);
+  const hasActiveFilters = useTaskFiltersStore(selectHasActiveFilters);
+
   return (
     <HStack justify="space-between" w="full" py="1">
-      <HStack gap="1.5" color={brandColors.textSecondary}>
+      <HStack
+        as="button"
+        gap="1.5"
+        color={hasActiveFilters ? brandColors.primary : brandColors.textMuted}
+        cursor={hasActiveFilters ? 'pointer' : 'default'}
+        opacity={hasActiveFilters ? 1 : 0.6}
+        pointerEvents={hasActiveFilters ? 'auto' : 'none'}
+        aria-disabled={!hasActiveFilters}
+        onClick={() => {
+          if (hasActiveFilters) resetFilters();
+        }}
+      >
         <FiSliders size={14} />
         <Text fontSize="sm" fontWeight="medium">
-          بهترین تطابق
+          پاک کردن فیلترها
         </Text>
       </HStack>
 
