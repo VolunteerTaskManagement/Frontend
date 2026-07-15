@@ -9,8 +9,6 @@ import { useEffect, useRef, useState } from "react";
 
 import InputBox from "../common/Inputbox";
 import MainButton from "../common/MainButton";
-import { toPersianDigits } from "../../utils/formatters";
-
 import { getProfile, updateCoordinatorProfile } from "../../services/profileService";
 import { useProfileStore } from "../../stores/profileStore";
 import { toaster } from "../../utils/toaster";
@@ -380,7 +378,7 @@ const CoordinatorProfileCard = () => {
         label="شماره تلفن"
         placeholder="شماره تلفن"
         icon={HiOutlinePhone}
-        value={toPersianDigits(phoneNumber)}
+        value={phoneNumber}
         onChange={setPhoneNumber}
       />
 
@@ -388,7 +386,7 @@ const CoordinatorProfileCard = () => {
         label="کد ملی"
         placeholder="کد ملی"
         icon={IoFingerPrintOutline}
-        value={toPersianDigits(nationalCode)}
+        value={nationalCode}
         onChange={setNationalCode}
       />
 
