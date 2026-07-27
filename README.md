@@ -1,73 +1,42 @@
-# React + TypeScript + Vite
+# Volunteer Task Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web-based platform designed to manage volunteer tasks and improve coordination between volunteers and coordinators.
 
-Currently, two official plugins are available:
+The platform allows volunteers to discover and manage available tasks, while coordinators can create, organize, and monitor volunteer activities. The application provides features such as authentication, task management, profiles, notifications, filtering, search, and location-based services.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+For more details about the project's architecture, design patterns, and technical implementation, please refer to the [architecture.md](architecture.md) document.
 
-## React Compiler
+## Technologies
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Frontend
+- React
+- TypeScript
+- Chakra UI
+- Mapbox
+- React Router DOM
+- Zustand
+- Axios
 
-## Expanding the ESLint configuration
+### Backend
+- ASP.NET Core
+- SQL Server
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Additional Tools
+- React Context API
+- LocalStorage
+- Socket-based notification service
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Team Members
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Frontend Developers
+- Mohamad Moein Khanmohamadi
+- Shayan Molaei
+- Amir Mohammad Azizi
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Backend Developers
+- Mahyar Niavand
+- Yasaman Haji
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## License
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+This project was developed as part of the **Advanced Software Engineering** course.
